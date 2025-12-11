@@ -9,6 +9,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta property="og:title" content="夜焚き火 - Yotakibi">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yotakibi.onrender.com/">
+    <meta property="og:image" content="{{ url_for('static', filename='images/ogp.png', _external=True) }}">
+    <meta property="og:description" content="自分の言葉を薪としてくべないと、誰かの火にあたれない。眠れない夜のための静かな日記共有サイト。">
+    <meta property="og:site_name" content="夜焚き火">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="夜焚き火 - Yotakibi">
+    <meta name="twitter:description" content="静かな夜を、ここで。">
 </head>
 
 <body>
