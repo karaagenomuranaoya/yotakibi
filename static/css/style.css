@@ -311,3 +311,44 @@ footer {
 .container {
     animation: fadeIn 1.2s ease-out; /* 1.2秒かけてゆっくり表示 */
 }
+
+/* ... (既存のコードの末尾に追加) ... */
+
+/* --- 長文の折りたたみ演出 --- */
+
+.diary-body {
+    position: relative;
+    transition: max-height 0.5s ease; /* ヌルっと開くアニメーション */
+}
+
+/* 折りたたまれている状態（JavaScriptで制御） */
+.diary-body.collapsed {
+    max-height: 180px; /* 約6~7行分だけ見せる */
+    overflow: hidden;
+    
+    /* 下の方をふわっと消すマスク処理（モダンブラウザ用） */
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+/* 「もっと火にあたる」ボタン */
+.read-more-btn {
+    display: block;
+    margin: 0.5rem auto 0; /* 中央寄せ */
+    background: none;
+    border: 1px solid #5C4A3D;
+    color: #D4AF37;
+    padding: 0.5rem 1.5rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s;
+    opacity: 0.8;
+}
+
+.read-more-btn:hover {
+    background-color: rgba(92, 74, 61, 0.3);
+    opacity: 1;
+}
+

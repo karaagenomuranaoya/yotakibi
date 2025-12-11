@@ -78,12 +78,12 @@ def index():
             return render_template('index.html', kept_content=content)
         
         # ★追加: 薪（本文）の長さチェック
-        if len(content) > 400:
-            flash('薪が大きすぎて、炉に入りません。（400文字まで）', 'error')
+        if len(content) > 2000:
+            flash('薪が大きすぎて、炉に入りません。（2000文字まで）', 'error')
             return render_template('index.html', kept_content=content)
 
-        if len(content) < 10:
-            flash('その薪では、すぐに燃え尽きてしまいます。（10文字以上）', 'error')
+        if len(content) < 4:
+            flash('その薪では、すぐに燃え尽きてしまいます。（5文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
         # 2. ひらがなバリデーション

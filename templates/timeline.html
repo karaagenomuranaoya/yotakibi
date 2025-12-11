@@ -38,11 +38,22 @@
                 <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
                 {% endif %}
             </div>
-            <div class="diary-body">
+
+            {# --- 長文判定ロジック --- #}
+            {% set is_long = (diary.content|length > 140) or (diary.content.count('\n') > 5) %}
+
+            <div class="diary-body {% if is_long %}collapsed{% endif %}" id="diary-body-{{ diary.id }}">
                 {{ diary.content | replace('\n', '<br>') | safe }}
             </div>
-        </div>
-        {% else %}
+
+            {% if is_long %}
+            {# ★変更: 関数名を toggleDiary にし、ボタンを消さずに残します #}
+            <button class="read-more-btn" onclick="toggleDiary('{{ diary.id }}', this)">
+                もっと火にあたる
+            </button>
+            {% endif %}
+
+        </div> {% else %}
         <div class="no-fire">
             <p>まだ、火は灯っていません。</p>
         </div>
@@ -57,4 +68,39 @@
         <a href="{{ url_for('index') }}">もう一度、薪をくべる</a>
     </div>
 </div>
+
+<script>
+    function toggleDiary(id, btn) {
+        const body = document.getElementById('diary-body-' + id);
+
+        // 現在 collapsed クラスがついているか確認
+        if (body.classList.contains('collapsed')) {
+            // --- 展開する処理 ---
+            body.classList.remove('collapsed');
+
+            // CSSのmaskプロパティを無効化して全文表示
+            body.style.maxHeight = 'none';
+            body.style.maskImage = 'none';
+            body.style.webkitMaskImage = 'none';
+
+            // ボタンの文字を変更
+            btn.textContent = '火から離れる'; // 閉じるボタン
+        } else {
+            // --- 閉じる（折りたたむ）処理 ---
+            body.classList.add('collapsed');
+
+            // スタイルを削除してCSSクラスの定義に戻す
+            body.style.maxHeight = null;
+            body.style.maskImage = null;
+            body.style.webkitMaskImage = null;
+
+            // ボタンの文字を元に戻す
+            btn.textContent = 'もっと火にあたる';
+
+            // 閉じたときにカードの頭が見えるように少しスクロール調整しても親切かもしれません（任意）
+            // btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+</script>
+
 {% endblock %}
