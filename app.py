@@ -20,6 +20,11 @@ if db_uri and db_uri.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///yotakibi.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ★追加: データベース接続が切れていたら自動で再接続する設定
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+}
+
 db = SQLAlchemy(app)
 
 # --- モデル定義 ---
