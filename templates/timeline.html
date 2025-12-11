@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="timeline-container">
+
+    <header class="timeline-header">
+        <h2 class="page-title">
+            {% if search_query %}
+            「{{ search_query }}」の火
+            {% else %}
+            夜の焚き火
+            {% endif %}
+        </h2>
+
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="q" placeholder="合言葉で火を探す..." value="{{ search_query if search_query else '' }}">
+            <button type="submit">探す</button>
+        </form>
+    </header>
+
+    {% if session.get('my_aikotoba') and not search_query %}
+    <div class="my-info">
+        <p>あなたがくべた合言葉: <strong>{{ session['my_aikotoba'] }}</strong></p>
+        <a href="{{ url_for('search', q=session['my_aikotoba']) }}" class="link-check">自分の火を確認する</a>
+    </div>
+    {% endif %}
+
+    <div class="diary-list">
+        {% for diary in diaries %}
+        <div class="diary-card">
+            <div class="diary-meta">
+                <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
+
+                {% if diary.is_public %}
+                <span class="diary-id public">合言葉: {{ diary.aikotoba }}</span>
+                {% else %}
+                <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
+                {% endif %}
+            </div>
+            <div class="diary-body">
+                {{ diary.content | replace('\n', '<br>') | safe }}
+            </div>
+        </div>
+        {% else %}
+        <div class="no-fire">
+            <p>まだ、火は灯っていません。</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="back-link">
+        <a href="{{ url_for('index') }}">もう一度、薪をくべる</a>
+    </div>
+</div>
+{% endblock %}

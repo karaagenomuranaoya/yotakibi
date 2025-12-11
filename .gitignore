@@ -1,0 +1,18 @@
+# .gitignore
+
+# 1. データベース (最も重要)
+# ユーザーの日記が保存されるため、絶対に公開してはいけません
+instance/
+*.db
+*.sqlite3
+
+# 2. 環境設定・秘密鍵
+# セッション暗号化キーなどを含むファイル
+.env
+config.py
+
+# 3. Pythonの一時ファイル・仮想環境
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/

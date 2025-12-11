@@ -1,0 +1,286 @@
+/* 全体のリセットとベース設定 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #2C241B; /* 深い茶色 */
+    color: #E0D6C8; /* オフホワイト */
+    font-family: 'Noto Serif JP', serif; /* 明朝体 */
+    line-height: 1.8;
+    
+    /* 画面中央に配置する設定 */
+    display: flex;
+    justify-content: center; /* 水平方向の中央 */
+    align-items: center;     /* 垂直方向の中央 */
+    min-height: 100vh;       /* 最低でも画面いっぱいの高さ */
+    padding: 1rem;           /* 画面端との最低限の余白 */
+}
+
+.container {
+    width: 100%;
+    max-width: 600px; /* PCでは幅600pxまで */
+    display: flex;
+    flex-direction: column;
+    /* 上下の余白を確保 */
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* ロゴとイントロ */
+.logo {
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+    color: #D4AF37; /* 琥珀色 */
+    text-align: center;
+}
+
+.intro {
+    text-align: center;
+    font-size: 0.95rem;
+    opacity: 0.8;
+    margin-bottom: 2.5rem;
+}
+
+/* フォーム周り */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #D4AF37;
+}
+
+textarea, input[type="text"] {
+    width: 100%;
+    background-color: #3E3228; /* 背景より少し明るい茶色 */
+    border: 1px solid #5C4A3D;
+    color: #E0D6C8;
+    padding: 1rem;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    appearance: none; 
+}
+
+textarea:focus, input[type="text"]:focus {
+    border-color: #D4AF37; /* フォーカス時に琥珀色に光る */
+}
+
+.hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* チェックボックス（公開設定） */
+.checkbox-group {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #E0D6C8;
+    cursor: pointer;
+}
+
+/* 焚べるボタン */
+.btn-burn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1rem;
+    background-color: #8B4513; /* サドルブラウン */
+    color: #E0D6C8;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn-burn:hover {
+    background-color: #A0522D; /* ホバー時に少し明るく */
+}
+
+.btn-burn:active {
+    transform: scale(0.98); /* 押した沈み込み */
+}
+
+/* フッター */
+footer {
+    margin-top: 3rem;
+    text-align: center;
+    opacity: 0.4;
+    font-size: 0.8rem;
+}
+
+/* エラーメッセージ */
+.flashes {
+    list-style: none;
+    margin-bottom: 1.5rem;
+    padding: 0;
+}
+.flashes li.error {
+    color: #ffcccc;
+    border: 1px solid #ff6b6b;
+    background: rgba(180, 50, 50, 0.2);
+    padding: 0.8rem;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* --- タイムライン画面用スタイル --- */
+
+.timeline-container {
+    width: 100%;
+}
+
+.timeline-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #5C4A3D;
+    padding-bottom: 1rem;
+}
+
+.page-title {
+    font-size: 1.2rem;
+    color: #D4AF37;
+    margin-bottom: 1rem;
+    font-weight: normal;
+}
+
+/* 検索フォーム */
+.search-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-form input {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.search-form button {
+    padding: 0.5rem 1rem;
+    background-color: #5C4A3D;
+    color: #E0D6C8;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* 自分の情報のヒント */
+.my-info {
+    background-color: rgba(212, 175, 55, 0.1);
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.link-check {
+    color: #D4AF37;
+    text-decoration: underline;
+    margin-left: 0.5rem;
+}
+
+/* 日記カード */
+.diary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.diary-card {
+    background-color: rgba(62, 50, 40, 0.4); /* うっすら背景 */
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #5C4A3D; /* 左にアクセントライン */
+    transition: border-color 0.3s;
+}
+
+.diary-card:hover {
+    border-left-color: #D4AF37; /* ホバーでラインが光る */
+}
+
+.diary-meta {
+    font-size: 0.8rem;
+    opacity: 0.5;
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.diary-body {
+    white-space: pre-wrap; /* 改行を反映 */
+    line-height: 1.9;
+    font-size: 1rem;
+}
+
+/* 公開された合言葉のスタイル */
+.diary-id.public {
+    color: #D4AF37;
+    border-bottom: 1px dashed #D4AF37;
+    padding-bottom: 2px;
+}
+
+/* 戻るリンク */
+.back-link {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.back-link a {
+    color: #D4AF37;
+    text-decoration: none;
+    border-bottom: 1px dashed #D4AF37;
+    padding-bottom: 0.2rem;
+}
+
+/* --- スマホ向け調整 (Media Query) --- */
+@media (max-width: 480px) {
+    body {
+        align-items: flex-start; /* スマホでは上詰めで表示開始 */
+        padding: 1rem;
+    }
+
+    .container {
+        margin-top: 1rem; /* 上の余白を少し減らす */
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .intro {
+        font-size: 0.85rem;
+        margin-bottom: 2rem;
+    }
+
+    textarea, input[type="text"] {
+        padding: 0.8rem; /* 入力欄を少しスリムに */
+    }
+}
