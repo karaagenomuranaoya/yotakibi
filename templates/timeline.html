@@ -13,15 +13,15 @@
         </h2>
 
         <form action="{{ url_for('search') }}" method="GET" class="search-form">
-            <input type="text" name="q" placeholder="合言葉で火を探す..." value="{{ search_query if search_query else '' }}">
-            <button type="submit">探す</button>
+            <input type="text" name="q" placeholder="合言葉..." value="{{ search_query if search_query else '' }}">
+            <button type="submit">火を辿る</button>
         </form>
     </header>
 
     {% if session.get('my_aikotoba') and not search_query %}
     <div class="my-info">
         <p>あなたがくべた合言葉: <strong>{{ session['my_aikotoba'] }}</strong></p>
-        <a href="{{ url_for('search', q=session['my_aikotoba']) }}" class="link-check">自分の火を確認する</a>
+        <a href="{{ url_for('search', q=session['my_aikotoba']) }}" class="link-check">自分の言葉を見に行く</a>
     </div>
     {% endif %}
 
