@@ -1,18 +1,28 @@
 import os
-import re  # ★追加: 正規表現用
+import re
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 
 app = Flask(__name__)
+
+# --- 設定周り ---
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-keep-it-secret-yotakibi')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///yotakibi.db')
+
+# ★ここが変更点: データベース接続設定の強化
+# RenderなどのPaaSでは 'postgres://' で始まるURLが渡されることがありますが、
+# SQLAlchemyの最新版は 'postgresql://' を要求するため、置換処理を入れます。
+db_uri = os.environ.get('DATABASE_URL')
+if db_uri and db_uri.startswith("postgres://"):
+    db_uri = db_uri.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///yotakibi.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# --- モデル定義などは変更なし ---
+# --- モデル定義 ---
 class Diary(db.Model):
     __tablename__ = 'diaries'
     id = db.Column(db.Integer, primary_key=True)
@@ -21,37 +31,53 @@ class Diary(db.Model):
     is_public = db.Column(db.Boolean, default=False) 
     created_at = db.Column(db.DateTime, default=datetime.now)
 
+# アプリ起動時にテーブルを作成（存在しない場合）
 with app.app_context():
     db.create_all()
 
-# --- 門番関数（check_opening_hours）などは変更なし ---
+# --- 門番関数（時間のチェック） ---
 @app.before_request
 def check_opening_hours():
+    # 静的ファイル（CSSなど）へのアクセスは常に許可
     if request.path.startswith('/static'):
         return
+
+    # 管理者用裏口（URLパラメータ ?admin_key=secret_open で常時アクセス可能に）
     secret_key = request.args.get('admin_key')
     if secret_key == 'secret_open':
         session['is_admin'] = True
+    
+    # 一度裏口を通った人はセッションが切れるまで許可
     if session.get('is_admin'):
         return
+
+    # 現在時刻のチェック（日本時間 JST を前提とします）
     now = datetime.now()
     hour = now.hour
+    
+    # 夜焚き火の開催時間: 20:00 〜 23:59
     is_open = (20 <= hour < 24)
+
     if not is_open:
+        # すでに「眠る時間（sleeping）」ページにいるならリダイレクトしない（無限ループ防止）
         if request.endpoint == 'sleeping':
             return
+            
+        # 時間帯によって理由を分ける
         if 0 <= hour < 6:
-            reason = 'midnight'
+            reason = 'midnight' # 深夜・早朝
         else:
-            reason = 'daytime'
+            reason = 'daytime'  # 日中
+            
         return redirect(url_for('sleeping', reason=reason))
 
 
+# --- デコレータ: 薪をくべた（投稿した）人だけ通す ---
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('has_posted'):
-            # ★追加: 優しく諭すメッセージ
+            # まだ投稿していない人がタイムラインを見ようとした場合
             flash('薪を一つ、焚べてからにしませんか。', 'error')
             return redirect(url_for('index'))
         return f(*args, **kwargs)
@@ -74,10 +100,9 @@ def index():
         # 1. 必須チェック
         if not content or not aikotoba:
             flash('薪と種火が必要です。', 'error')
-            # ★変更: 本文だけは残してあげる
             return render_template('index.html', kept_content=content)
         
-        # ★追加: 薪（本文）の長さチェック
+        # 2. 文字数チェック
         if len(content) > 2000:
             flash('薪が大きすぎて、炉に入りません。（2000文字まで）', 'error')
             return render_template('index.html', kept_content=content)
@@ -86,13 +111,11 @@ def index():
             flash('その薪では、すぐに燃え尽きてしまいます。（5文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
-        # 2. ひらがなバリデーション
+        # 3. 合言葉（種火）のバリデーション
         if not re.match(r'^[ぁ-ん]+$', aikotoba):
             flash('種火にはひらがながぴったりです。', 'error')
             return render_template('index.html', kept_content=content)
 
-        # ★変更 3. 文字数制限 (15文字以内)
-        # 粋なエラーメッセージに変更し、本文を保持して戻す
         if len(aikotoba) > 15:
             flash('種火はもうちょっとだけ静かに（15文字以下）', 'error')
             return render_template('index.html', kept_content=content)
@@ -106,8 +129,10 @@ def index():
         db.session.add(new_diary)
         db.session.commit()
 
+        # セッションに「投稿済み」の証を残す
         session['has_posted'] = True
         session['my_aikotoba'] = aikotoba
+        
         return redirect(url_for('timeline'))
 
     return render_template('index.html')
@@ -115,10 +140,13 @@ def index():
 @app.route('/timeline')
 @fire_required
 def timeline():
+    # 過去24時間の投稿のみ表示
     time_threshold = datetime.now() - timedelta(hours=24)
+    
     diaries = Diary.query.filter(Diary.created_at >= time_threshold)\
                          .order_by(Diary.created_at.desc())\
                          .all()
+                         
     return render_template('timeline.html', diaries=diaries)
 
 @app.route('/search')
@@ -128,10 +156,9 @@ def search():
     if not query:
         return redirect(url_for('timeline'))
     
-    # 検索時もバリデーションはあった方が親切ですが、
-    # ここでは「どんな文字列でも探そうとした」という意図を尊重し、エラーにはせずそのまま検索させます
-    # (当然、ひらがな以外で検索してもヒットしません)
+    # 合言葉で検索（完全一致）
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
+    
     return render_template('timeline.html', diaries=results, search_query=query)
 
 if __name__ == '__main__':
