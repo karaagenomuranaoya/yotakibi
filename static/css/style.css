@@ -156,21 +156,7 @@ footer {
     font-size: 0.8rem;
 }
 
-/* エラーメッセージ */
-.flashes {
-    list-style: none;
-    margin-bottom: 1.5rem;
-    padding: 0;
-}
-.flashes li.error {
-    color: #ffcccc;
-    border: 1px solid #ff6b6b;
-    background: rgba(180, 50, 50, 0.2);
-    padding: 0.8rem;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 0.9rem;
-}
+
 
 /* --- タイムライン画面用スタイル --- */
 
@@ -305,4 +291,23 @@ footer {
     textarea, input[type="text"] {
         padding: 0.8rem; /* 入力欄を少しスリムに */
     }
+}
+
+/* --- 演出用アニメーション --- */
+
+/* ふわっと表示させるための定義 */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px); /* 少し下から浮き上がる */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 画面全体（コンテナ）に適用 */
+.container {
+    animation: fadeIn 1.2s ease-out; /* 1.2秒かけてゆっくり表示 */
 }

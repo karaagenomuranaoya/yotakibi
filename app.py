@@ -46,10 +46,13 @@ def check_opening_hours():
             reason = 'daytime'
         return redirect(url_for('sleeping', reason=reason))
 
+
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('has_posted'):
+            # ★追加: 優しく諭すメッセージ
+            flash('薪を一つ、焚べてからにしませんか。', 'error')
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
@@ -73,6 +76,15 @@ def index():
             flash('薪と種火が必要です。', 'error')
             # ★変更: 本文だけは残してあげる
             return render_template('index.html', kept_content=content)
+        
+        # ★追加: 薪（本文）の長さチェック
+        if len(content) > 400:
+            flash('薪が大きすぎて、炉に入りません。（400文字まで）', 'error')
+            return render_template('index.html', kept_content=content)
+
+        if len(content) < 10:
+            flash('その薪では、すぐに燃え尽きてしまいます。（10文字以上）', 'error')
+            return render_template('index.html', kept_content=content)
 
         # 2. ひらがなバリデーション
         if not re.match(r'^[ぁ-ん]+$', aikotoba):
@@ -82,11 +94,11 @@ def index():
         # ★変更 3. 文字数制限 (15文字以内)
         # 粋なエラーメッセージに変更し、本文を保持して戻す
         if len(aikotoba) > 15:
-            flash('種火はちょっとでいいんです', 'error')
+            flash('種火はもうちょっとだけ静かに（15文字以下）', 'error')
             return render_template('index.html', kept_content=content)
         
         if len(aikotoba) < 3:
-            flash('ちょっとすぎるのも考えものです', 'error')
+            flash('種火がちょっとすぎるのも考えものです（3文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
         # 保存処理
