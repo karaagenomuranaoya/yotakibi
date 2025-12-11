@@ -1,5 +1,6 @@
 import os
-from datetime import datetime
+import re  # ★追加: 正規表現用
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
@@ -11,69 +12,40 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ---------------------------------------------------------
-# データモデル (Diary) - 更新
-# ---------------------------------------------------------
+# --- モデル定義などは変更なし ---
 class Diary(db.Model):
     __tablename__ = 'diaries'
-    
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     aikotoba = db.Column(db.String(20), nullable=False)
-    # ★追加: 合言葉を公開するかどうかのフラグ
     is_public = db.Column(db.Boolean, default=False) 
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 with app.app_context():
     db.create_all()
 
-# app.py の該当部分（check_opening_hours）を以下に書き換えてください
-
-# ---------------------------------------------------------
-# 時間制限の門番（夜しか開かない ＆ 裏口あり）
-# ---------------------------------------------------------
+# --- 門番関数（check_opening_hours）などは変更なし ---
 @app.before_request
 def check_opening_hours():
-    # 1. 静的ファイルは常に許可
     if request.path.startswith('/static'):
         return
-
-    # 2. 管理者（裏口）チェック
-    # URLに ?admin_key=... がある、または既に管理者セッションがある場合
-    # 本番では環境変数でキーを管理すべきですが、今は簡易的に 'secret_open' とします
     secret_key = request.args.get('admin_key')
     if secret_key == 'secret_open':
-        session['is_admin'] = True  # セッションに管理者フラグを立てる
-    
-    # 管理者なら常に通過許可
+        session['is_admin'] = True
     if session.get('is_admin'):
         return
-
-    # 3. 時間チェック
     now = datetime.now()
     hour = now.hour
-
-    # 営業時間: 20時(20) 〜 24時(0)の前まで
-    # hourが 20, 21, 22, 23 のいずれかなら営業中
     is_open = (20 <= hour < 24)
-
     if not is_open:
-        # 閉店中だが、sleepingページへのアクセスなら許可
         if request.endpoint == 'sleeping':
             return
-        
-        # それ以外はsleepingページへ飛ばす
-        # その際、時間帯の理由（reason）をURLパラメータで渡す
         if 0 <= hour < 6:
-            reason = 'midnight' # 0:00 - 6:00 (寝ろよ)
+            reason = 'midnight'
         else:
-            reason = 'daytime'  # 6:00 - 20:00 (まだ早い)
-            
+            reason = 'daytime'
         return redirect(url_for('sleeping', reason=reason))
 
-# ---------------------------------------------------------
-# アクセス制限デコレータ
-# ---------------------------------------------------------
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -82,12 +54,7 @@ def fire_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ---------------------------------------------------------
-# ルーティング
-# ---------------------------------------------------------
-
-# 【閉店画面】
-# app.py の sleeping ルート部分
+# --- ルーティング ---
 
 @app.route('/sleeping')
 def sleeping():
@@ -99,13 +66,30 @@ def index():
     if request.method == 'POST':
         content = request.form.get('content')
         aikotoba = request.form.get('aikotoba')
-        # ★追加: チェックボックスの値を取得
         is_public = True if request.form.get('is_public') else False
 
+        # 1. 必須チェック
         if not content or not aikotoba:
-            flash('言葉と合言葉が必要です。', 'error')
-            return redirect(url_for('index'))
+            flash('薪と種火が必要です。', 'error')
+            # ★変更: 本文だけは残してあげる
+            return render_template('index.html', kept_content=content)
 
+        # 2. ひらがなバリデーション
+        if not re.match(r'^[ぁ-ん]+$', aikotoba):
+            flash('種火にはひらがながぴったりです。', 'error')
+            return render_template('index.html', kept_content=content)
+
+        # ★変更 3. 文字数制限 (15文字以内)
+        # 粋なエラーメッセージに変更し、本文を保持して戻す
+        if len(aikotoba) > 15:
+            flash('種火はちょっとでいいんです', 'error')
+            return render_template('index.html', kept_content=content)
+        
+        if len(aikotoba) < 3:
+            flash('ちょっとすぎるのも考えものです', 'error')
+            return render_template('index.html', kept_content=content)
+
+        # 保存処理
         new_diary = Diary(content=content, aikotoba=aikotoba, is_public=is_public)
         db.session.add(new_diary)
         db.session.commit()
@@ -119,7 +103,10 @@ def index():
 @app.route('/timeline')
 @fire_required
 def timeline():
-    diaries = Diary.query.order_by(Diary.created_at.desc()).limit(50).all()
+    time_threshold = datetime.now() - timedelta(hours=24)
+    diaries = Diary.query.filter(Diary.created_at >= time_threshold)\
+                         .order_by(Diary.created_at.desc())\
+                         .all()
     return render_template('timeline.html', diaries=diaries)
 
 @app.route('/search')
@@ -129,6 +116,9 @@ def search():
     if not query:
         return redirect(url_for('timeline'))
     
+    # 検索時もバリデーションはあった方が親切ですが、
+    # ここでは「どんな文字列でも探そうとした」という意図を尊重し、エラーにはせずそのまま検索させます
+    # (当然、ひらがな以外で検索してもヒットしません)
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=results, search_query=query)
 

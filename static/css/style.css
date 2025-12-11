@@ -102,6 +102,28 @@ textarea:focus, input[type="text"]:focus {
     cursor: pointer;
 }
 
+/* エラーメッセージ */
+.flashes {
+    list-style: none;
+    margin-bottom: 1.5rem;
+    padding: 0;
+}
+
+/* クラス名は .error のまま、色設定だけユーザーさんの指定に変更 */
+.flashes li.error {
+    /* --- 今回変更した優しい色味 --- */
+    background-color: #f3e8e0;  /* 明るい茶の背景 */
+    color: #5a3e2b;             /* 濃いブラウン文字 */
+    border: 1px solid #d8c2b0;
+    
+    /* --- レイアウト調整（維持） --- */
+    padding: 0.8rem;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+
 /* 焚べるボタン */
 .btn-burn {
     display: block;

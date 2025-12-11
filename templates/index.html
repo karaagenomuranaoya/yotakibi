@@ -4,29 +4,30 @@
 <div class="fire-starter">
     <h1 class="logo">夜焚き火</h1>
     <p class="intro">
-        あなたの言葉を薪としてくべると、<br>
+        あなたの言葉を薪として焚べると、<br>
         誰かが灯した火が見えるようになります。
     </p>
 
     <form action="/" method="POST" class="diary-form">
         <div class="form-group">
-            <label for="content">今日の言葉（薪）</label>
-            <textarea name="content" id="content" rows="6" placeholder="夜の闇に溶かしたい、独り言..." required></textarea>
+            <label for="content">薪（今日の言葉）</label>
+            <textarea name="content" id="content" rows="6" placeholder="独りの夜も悪くない。"
+                required>{{ kept_content if kept_content else '' }}</textarea>
         </div>
 
         <div class="form-group">
-            <label for="aikotoba">合言葉（種火）</label>
-            <input type="text" name="aikotoba" id="aikotoba" placeholder="ひらがな5文字程度" required autocomplete="off">
+            <label for="aikotoba">種火</label>
+            <input type="text" name="aikotoba" id="aikotoba" placeholder="今日の種火" required autocomplete="off">
 
             <span class="hint">
-                これがあれば昔の言葉を見返せます。他の人がこの合言葉で探した場合でも見返すことができます。<br>
+                種火があれば昔の言葉を見返せます。他の人がこの合言葉で探した場合でも見返すことができます。<br>
                 複雑な合言葉で自分だけの秘密にするか、簡単なものにして誰かに見つけてもらうのをこっそり待つか。あなたはあなたのよろしいように。<br>
                 ＊完全に見られない保証があるものではありません。大事なことは書かないようにしましょう。
             </span>
 
             <div class="checkbox-group">
                 <input type="checkbox" name="is_public" id="is_public" value="1">
-                <label for="is_public" class="checkbox-label">合言葉を、焚き火のそばに残す（タイムラインに合言葉が表示されます）</label>
+                <label for="is_public" class="checkbox-label">種火を焚き火のそばに残す（タイムラインに種火が表示されます）</label>
             </div>
         </div>
 
