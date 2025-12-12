@@ -33,7 +33,7 @@
                 <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
 
                 {% if diary.is_public %}
-                <span class="diary-id public">合言葉: {{ diary.aikotoba }}</span>
+                <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
                 {% else %}
                 <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
                 {% endif %}
@@ -42,9 +42,8 @@
             {# --- 長文判定ロジック --- #}
             {% set is_long = (diary.content|length > 140) or (diary.content.count('\n') > 5) %}
 
-            <div class="diary-body {% if is_long %}collapsed{% endif %}" id="diary-body-{{ diary.id }}">
-                {{ diary.content | replace('\n', '<br>') | safe }}
-            </div>
+            <div class="diary-body {% if is_long %}collapsed{% endif %}" id="diary-body-{{ diary.id }}">{{ diary.content
+                }}</div>
 
             {% if is_long %}
             {# ★変更: 関数名を toggleDiary にし、ボタンを消さずに残します #}
