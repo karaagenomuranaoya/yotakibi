@@ -7,17 +7,59 @@
         <h1 class="logo" style="margin-bottom: 1rem;">夜焚き火</h1>
         <p style="font-size: 0.9rem; opacity: 0.8; line-height: 1.8;">
             ここは、誰にも言えない言葉を薪にして<br>
-            静かに燃やす場所です。<br>
+            静かに火に焚べる場所です。<br>
             <br>
             匿名で日記を書き、誰かの火にあたる。<br>
             そんな夜の過ごし方を。
         </p>
+        <div class="guide-nav">
+            <a href="{{ url_for('manual') }}" class="guide-link">
+                夜焚き火の歩き方
+            </a>
+        </div>
+
+        <style>
+            .guide-nav {
+                text-align: center;
+                margin: 1.5rem 0 2.5rem 0;
+                /* 上下の余白を少し広げました */
+            }
+
+            .guide-link {
+                display: inline-block;
+                /* 文字色を明るい小麦色に変更 */
+                color: #F5DEB3;
+                /* 背景を少し明るい焦げ茶色に */
+                background: #2C241B;
+                padding: 0.6rem 1.5rem;
+                border-radius: 30px;
+                /* 枠線を最初からはっきり表示 */
+                border: 1px solid #8B4513;
+                font-size: 0.95rem;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                /* 影をつけて少し浮き上がらせる */
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            }
+
+            .guide-link:hover {
+                background: #3E3226;
+                border-color: #D4AF37;
+                /* ホバー時に枠が金に */
+                color: #FFF;
+                /* ホバー時に文字を白く */
+                box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+                transform: translateY(-2px);
+                /* 少しだけふわっと浮く */
+            }
+        </style>
 
         <a href="{{ url_for('write') }}" class="btn-burn"
             style="display: inline-block; width: auto; padding: 0.8rem 2rem; margin-top: 1.5rem; text-decoration: none;">
             薪をくべる（書く）
         </a>
     </div>
+
 
     <header class="timeline-header">
         <h2 class="page-title">

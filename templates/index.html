@@ -17,27 +17,92 @@
 
         <div class="form-group">
             <label for="aikotoba">種火</label>
-            <input type="text" name="aikotoba" id="aikotoba" placeholder="きょうのたねび" required autocomplete="off">
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" name="aikotoba" id="aikotoba" placeholder="きょうのたねび" required autocomplete="off"
+                    style="flex: 1;">
+
+                <button type="button" onclick="generateRandomKey()"
+                    style="background: none; border: 1px solid #5C4A3D; color: #D4AF37; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; font-size: 0.9rem;">
+                    🎲 生成
+                </button>
+            </div>
 
             <span class="hint">
-                種火があれば昔の言葉を見返せます。他の人がこの種火で探した場合でも見返すことができます。<br>
-                複雑な種火で自分だけの秘密にするか、簡単なものにして誰かに見つけてもらうのをこっそり待つか。あなたはあなたのよろしいように。<br>
-                ＊完全に見られない保証があるものではありません。大事なことは書かないようにしましょう。
+                種火（合言葉）を決めましょう。<br>
+                「ねこ」「空」のような簡単な言葉は、偶然誰かと重なることがあります。<br>
+                自分だけの秘密にしたい場合は、<strong>生成ボタン</strong>を押して、あなただけの特別な火を作ってください。
             </span>
 
             <div class="checkbox-group">
                 <input type="checkbox" name="is_public" id="is_public" value="1">
-                <label for="is_public" class="checkbox-label">種火を焚き火のそばに残す（タイムラインに種火が表示されます）</label>
+                <label for="is_public" class="checkbox-label">
+                    この種火をタイムラインに表示する<br>
+                    <span style="font-size: 0.8rem; opacity: 0.7;">
+                        ※チェックすると、同じ種火を使っていることが他の人に分かります。<br>
+                        （自分だと気づかれたくない場合は外してください）
+                    </span>
+                </label>
             </div>
         </div>
 
         <button type="submit" class="btn-burn">火を焚べる</button>
     </form>
-    <div style="margin-top: 1.5rem; text-align: center;">
-        <a href="{{ url_for('index') }}"
-            style="color: #D4AF37; opacity: 0.5; text-decoration: none; font-size: 0.9rem;">
-            火を見に行く（戻る）
+    <div class="write-back-nav">
+        <a href="{{ url_for('index') }}" class="write-back-link">
+            &lt; 焚き火に戻る
         </a>
     </div>
+
+    <style>
+        .write-back-nav {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .write-back-link {
+            display: inline-block;
+            color: #E0D6C8;
+            /* 明るい文字色 */
+            border: 1px solid #5C4A3D;
+            /* 枠線をつける */
+            padding: 0.6rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.3);
+            /* 少し背景を暗くして文字を浮き立たせる */
+            transition: all 0.3s ease;
+        }
+
+        .write-back-link:hover {
+            border-color: #D4AF37;
+            /* ホバーで枠を金色に */
+            color: #D4AF37;
+            /* 文字も金色に */
+            background: rgba(44, 36, 27, 0.8);
+        }
+    </style>
 </div>
+
+<script>
+    function generateRandomKey() {
+        // ランダムな英数字10文字を生成
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "";
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        // 入力欄にセット
+        const input = document.getElementById('aikotoba');
+        input.value = result;
+
+        // 生成したことがわかるように少しエフェクト（点滅）
+        input.style.backgroundColor = "#5C4A3D";
+        setTimeout(() => {
+            input.style.backgroundColor = "#3E3228";
+        }, 200);
+    }
+</script>
 {% endblock %}

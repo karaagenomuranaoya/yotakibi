@@ -1,5 +1,6 @@
 import os
 import re
+import random # ランダム日時用
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +11,7 @@ app = Flask(__name__)
 # --- 設定周り ---
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-keep-it-secret-yotakibi')
 
-# データベース接続設定の強化
+# データベース接続設定
 db_uri = os.environ.get('DATABASE_URL')
 if db_uri and db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
@@ -18,7 +19,6 @@ if db_uri and db_uri.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///yotakibi.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# データベース自動再接続設定
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "pool_pre_ping": True,
 }
@@ -30,7 +30,7 @@ class Diary(db.Model):
     __tablename__ = 'diaries'
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    aikotoba = db.Column(db.String(20), nullable=False)
+    aikotoba = db.Column(db.String(50), nullable=False)
     is_public = db.Column(db.Boolean, default=False) 
     created_at = db.Column(db.DateTime, default=datetime.now)
 
@@ -38,13 +38,12 @@ class Diary(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- 門番関数（時間のチェック） ---
+# --- 門番関数 ---
 @app.before_request
 def check_opening_hours():
-    # ★修正: 審査用に24時間アクセス可能にするため、すぐにリターン（無効化）
+    # ★審査用：24時間オープン（無効化中）
     return
 
-    # --- 以下、元のコード（審査後に戻すときは上のreturnを消す） ---
     if request.path.startswith('/static'):
         return
 
@@ -58,36 +57,25 @@ def check_opening_hours():
     now = datetime.now()
     hour = now.hour
     
-    # 19:00 〜 25:00
     is_open = (hour >= 19) or (hour < 1)
     
     if not is_open:
         if request.endpoint == 'sleeping':
             return
-            
         if 0 <= hour < 6:
             reason = 'midnight'
         else:
             reason = 'daytime'
-            
         return redirect(url_for('sleeping', reason=reason))
 
 
-# --- デコレータ: 投稿チェック ---
+# --- デコレータ ---
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # ★修正: 審査用に誰でも見れるようにする（無効化）
+        # ★審査用：制限なし（無効化中）
         return f(*args, **kwargs)
         
-        # --- 以下、元のコード ---
-        # if session.get('is_admin'):
-        #     return f(*args, **kwargs)
-        
-        # if not session.get('has_posted'):
-        #     flash('薪を一つ、焚べてからにしませんか。', 'error')
-        #     return redirect(url_for('write')) # indexではなくwriteへ
-        # return f(*args, **kwargs)
     return decorated_function
 
 # --- ルーティング ---
@@ -97,7 +85,11 @@ def sleeping():
     reason = request.args.get('reason', 'daytime')
     return render_template('sleeping.html', reason=reason)
 
-# ★変更: 元のindexをwriteに変更（投稿ページ）
+# ★追加：説明書ページへのルート
+@app.route('/manual')
+def manual():
+    return render_template('manual.html')
+
 @app.route('/write', methods=['GET', 'POST'])
 def write():
     if request.method == 'POST':
@@ -119,22 +111,19 @@ def write():
             flash('その薪では、すぐに燃え尽きてしまいます。（5文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
-        # 3. 合言葉（種火）のバリデーション
-        if not re.match(r'^[ぁ-ん]+$', aikotoba):
-            flash('種火にはひらがながぴったりです。', 'error')
-            return render_template('index.html', kept_content=content)
-
-        if len(aikotoba) > 15:
-            flash('種火はもうちょっとだけ静かに（15文字以下）', 'error')
+        # 3. 種火のバリデーション
+        if len(aikotoba) > 30:
+            flash('種火が長すぎて、覚えきれません（30文字以下）', 'error')
             return render_template('index.html', kept_content=content)
         
-        if len(aikotoba) < 3:
-            flash('種火がちょっとすぎるのも考えものです（3文字以上）', 'error')
+        if len(aikotoba) < 2:
+            flash('種火が短すぎると、すぐに消えてしまいます（2文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
-        # 投稿時間の決定
+        # 投稿時間の決定（ランダム日時）
         if session.get('is_admin'):
-            post_time = datetime.now().replace(hour=19, minute=15, second=0, microsecond=0)
+            random_minutes = random.randint(0, 10000)
+            post_time = datetime.now() - timedelta(minutes=random_minutes)
         else:
             post_time = datetime.now()
 
@@ -152,16 +141,13 @@ def write():
         session['has_posted'] = True
         session['my_aikotoba'] = aikotoba
         
-        # ★変更: 投稿後はトップページ（一覧）へ戻る
         return redirect(url_for('index'))
 
     return render_template('index.html')
 
-# ★変更: 元のtimelineをindexに変更（トップページ）
 @app.route('/')
 @fire_required
 def index():
-    # ★変更: 全件取得（時間制限なし）
     diaries = Diary.query.order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=diaries)
 
@@ -170,7 +156,6 @@ def index():
 def search():
     query = request.args.get('q')
     if not query:
-        # ★変更: 戻り先をindexに
         return redirect(url_for('index'))
     
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
