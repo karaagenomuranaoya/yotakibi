@@ -5,10 +5,12 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
+from flask_wtf import CSRFProtect # 【追加】CSRF対策用
 
 app = Flask(__name__)
 
 # --- 設定周り ---
+# 【重要】本番環境では推測不可能なランダムな文字列を環境変数 SECRET_KEY に設定してください
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-keep-it-secret-yotakibi')
 
 # データベース接続設定
@@ -24,6 +26,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 db = SQLAlchemy(app)
+csrf = CSRFProtect(app) # 【追加】アプリ全体でCSRF保護を有効化
 
 # --- モデル定義 ---
 class Diary(db.Model):
@@ -41,9 +44,12 @@ with app.app_context():
 # --- 門番関数 ---
 @app.before_request
 def check_opening_hours():
-    # 1. 管理者（シークレットモード）判定を最初に行う
-    secret_key = request.args.get('admin_key')
-    if secret_key == 'secret_open':
+    # 1. 管理者（シークレットモード）判定
+    # ハードコードをやめ、環境変数 ADMIN_KEY と一致する場合のみ許可
+    input_key = request.args.get('admin_key')
+    env_admin_key = os.environ.get('ADMIN_KEY') # 環境変数で設定すること
+    
+    if env_admin_key and input_key == env_admin_key:
         session['is_admin'] = True
     
     # 管理者は時間制限を無視して通過
@@ -54,8 +60,8 @@ def check_opening_hours():
     if request.path.startswith('/static'):
         return
 
-    # ★審査用：24時間オープン（もし通常営業モードに戻すなら、下の return を削除またはコメントアウトしてください）
-    return
+    # 【修正】開発用の強制オープン（return）を削除しました。
+    # これにより、以下の時間制限ロジックが正常に機能します。
 
     # --- 以下、通常営業（夜間のみ）のロジック ---
     now = datetime.now()
@@ -81,7 +87,7 @@ def check_opening_hours():
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # ★審査用：制限なし（無効化中）
+        # 審査用などの制限無効化ロジックがあればここに書く
         return f(*args, **kwargs)
         
     return decorated_function
@@ -100,6 +106,7 @@ def manual():
 @app.route('/write', methods=['GET', 'POST'])
 def write():
     if request.method == 'POST':
+        # CSRFチェックはFlask-WTFが自動で行います
         content = request.form.get('content')
         aikotoba = request.form.get('aikotoba')
         is_public = True if request.form.get('is_public') else False
@@ -129,8 +136,6 @@ def write():
 
         # 投稿時間の決定（ランダム日時処理）
         if session.get('is_admin'):
-            # 現在時刻から過去1週間（7日間）の範囲でランダムな分数を引く
-            # 7日 * 24時間 * 60分 = 10080分
             one_week_minutes = 7 * 24 * 60 
             random_minutes = random.randint(0, one_week_minutes)
             post_time = datetime.now() - timedelta(minutes=random_minutes)
@@ -158,7 +163,9 @@ def write():
 @app.route('/')
 @fire_required
 def index():
-    diaries = Diary.query.order_by(Diary.created_at.desc()).all()
+    # 【修正】トップページには「公開(is_public=True)」の火だけを表示する
+    # これにより「秘密の火」がタイムラインに流出する事故を防ぎます
+    diaries = Diary.query.filter_by(is_public=True).order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=diaries)
 
 @app.route('/search')
@@ -168,8 +175,12 @@ def search():
     if not query:
         return redirect(url_for('index'))
     
+    # 検索機能は「合言葉を知っている」前提なので、
+    # ここでは秘密の火(is_public=False)も含めて検索できるようにしておきます。
+    # もし「秘密の火」は検索でも出したくない場合は、ここにも filter_by(is_public=True) を追加してください。
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=results, search_query=query)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # 【修正】デバッグモードをFalseに変更（必須）
+    app.run(debug=False)

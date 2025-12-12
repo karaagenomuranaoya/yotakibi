@@ -9,6 +9,8 @@
     </p>
 
     <form action="{{ url_for('write') }}" method="POST" class="diary-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
         <div class="form-group">
             <label for="content">薪（今日の言葉）</label>
             <textarea name="content" id="content" rows="6" placeholder="独りの夜も悪くない。"
