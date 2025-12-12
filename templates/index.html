@@ -8,7 +8,7 @@
         誰かが灯した火が見えるようになります。
     </p>
 
-    <form action="/" method="POST" class="diary-form" novalidate>
+    <form action="{{ url_for('write') }}" method="POST" class="diary-form" novalidate>
         <div class="form-group">
             <label for="content">薪（今日の言葉）</label>
             <textarea name="content" id="content" rows="6" placeholder="独りの夜も悪くない。"
@@ -34,9 +34,9 @@
         <button type="submit" class="btn-burn">火を焚べる</button>
     </form>
     <div style="margin-top: 1.5rem; text-align: center;">
-        <a href="{{ url_for('timeline') }}"
+        <a href="{{ url_for('index') }}"
             style="color: #D4AF37; opacity: 0.5; text-decoration: none; font-size: 0.9rem;">
-            火を見に行く
+            火を見に行く（戻る）
         </a>
     </div>
 </div>

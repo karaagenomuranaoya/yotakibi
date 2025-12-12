@@ -10,9 +10,7 @@ app = Flask(__name__)
 # --- 設定周り ---
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-keep-it-secret-yotakibi')
 
-# ★ここが変更点: データベース接続設定の強化
-# RenderなどのPaaSでは 'postgres://' で始まるURLが渡されることがありますが、
-# SQLAlchemyの最新版は 'postgresql://' を要求するため、置換処理を入れます。
+# データベース接続設定の強化
 db_uri = os.environ.get('DATABASE_URL')
 if db_uri and db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
@@ -20,7 +18,7 @@ if db_uri and db_uri.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///yotakibi.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ★追加: データベース接続が切れていたら自動で再接続する設定
+# データベース自動再接続設定
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "pool_pre_ping": True,
 }
@@ -36,62 +34,60 @@ class Diary(db.Model):
     is_public = db.Column(db.Boolean, default=False) 
     created_at = db.Column(db.DateTime, default=datetime.now)
 
-# アプリ起動時にテーブルを作成（存在しない場合）
+# アプリ起動時にテーブルを作成
 with app.app_context():
     db.create_all()
 
 # --- 門番関数（時間のチェック） ---
 @app.before_request
 def check_opening_hours():
-    # 静的ファイル（CSSなど）へのアクセスは常に許可
+    # ★修正: 審査用に24時間アクセス可能にするため、すぐにリターン（無効化）
+    return
+
+    # --- 以下、元のコード（審査後に戻すときは上のreturnを消す） ---
     if request.path.startswith('/static'):
         return
 
-    # 管理者用裏口（URLパラメータ ?admin_key=secret_open で常時アクセス可能に）
     secret_key = request.args.get('admin_key')
     if secret_key == 'secret_open':
         session['is_admin'] = True
     
-    # 一度裏口を通った人はセッションが切れるまで許可
     if session.get('is_admin'):
         return
 
-    # 現在時刻のチェック（日本時間 JST を前提とします）
     now = datetime.now()
     hour = now.hour
     
-    # 夜焚き火の開催時間: 20:00 〜 23:59
-    # 開発中につき
-    # is_open = (19 <= hour < 24)
-    is_open = True
+    # 19:00 〜 25:00
+    is_open = (hour >= 19) or (hour < 1)
     
     if not is_open:
-        # すでに「眠る時間（sleeping）」ページにいるならリダイレクトしない（無限ループ防止）
         if request.endpoint == 'sleeping':
             return
             
-        # 時間帯によって理由を分ける
         if 0 <= hour < 6:
-            reason = 'midnight' # 深夜・早朝
+            reason = 'midnight'
         else:
-            reason = 'daytime'  # 日中
+            reason = 'daytime'
             
         return redirect(url_for('sleeping', reason=reason))
 
 
-# --- デコレータ: 薪をくべた（投稿した）人だけ通す ---
+# --- デコレータ: 投稿チェック ---
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # ★追加: 管理者(is_admin)なら、投稿してなくても通す！
-        if session.get('is_admin'):
-            return f(*args, **kwargs)
-        
-        if not session.get('has_posted'):
-            # まだ投稿していない人がタイムラインを見ようとした場合
-            flash('薪を一つ、焚べてからにしませんか。', 'error')
-            return redirect(url_for('index'))
+        # ★修正: 審査用に誰でも見れるようにする（無効化）
         return f(*args, **kwargs)
+        
+        # --- 以下、元のコード ---
+        # if session.get('is_admin'):
+        #     return f(*args, **kwargs)
+        
+        # if not session.get('has_posted'):
+        #     flash('薪を一つ、焚べてからにしませんか。', 'error')
+        #     return redirect(url_for('write')) # indexではなくwriteへ
+        # return f(*args, **kwargs)
     return decorated_function
 
 # --- ルーティング ---
@@ -101,8 +97,9 @@ def sleeping():
     reason = request.args.get('reason', 'daytime')
     return render_template('sleeping.html', reason=reason)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
+# ★変更: 元のindexをwriteに変更（投稿ページ）
+@app.route('/write', methods=['GET', 'POST'])
+def write():
     if request.method == 'POST':
         content = request.form.get('content')
         aikotoba = request.form.get('aikotoba')
@@ -135,49 +132,37 @@ def index():
             flash('種火がちょっとすぎるのも考えものです（3文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
-        # 保存処理
-        # --- ここから変更 ---
-
         # 投稿時間の決定
-        # もし管理者（自分）なら、時間を「今日の22:00〜23:59」のどこかに偽装する
         if session.get('is_admin'):
-            # 例: 今日の22時22分にする（分までこだわるとリアルです！）
             post_time = datetime.now().replace(hour=19, minute=15, second=0, microsecond=0)
         else:
-            # 一般ユーザーは正直な現在時刻
             post_time = datetime.now()
 
-        # 保存処理（created_at を明示的に渡すのがポイント！）
+        # 保存処理
         new_diary = Diary(
             content=content, 
             aikotoba=aikotoba, 
             is_public=is_public,
-            created_at=post_time  # ★ここで偽装した時間を渡す
+            created_at=post_time 
         )
         
         db.session.add(new_diary)
         db.session.commit()
         
-        # --- ここまで変更 ---
-
-        # セッションに「投稿済み」の証を残す
         session['has_posted'] = True
         session['my_aikotoba'] = aikotoba
         
-        return redirect(url_for('timeline'))
+        # ★変更: 投稿後はトップページ（一覧）へ戻る
+        return redirect(url_for('index'))
 
     return render_template('index.html')
 
-@app.route('/timeline')
+# ★変更: 元のtimelineをindexに変更（トップページ）
+@app.route('/')
 @fire_required
-def timeline():
-    # 過去24時間の投稿のみ表示
-    time_threshold = datetime.now() - timedelta(hours=24)
-    
-    diaries = Diary.query.filter(Diary.created_at >= time_threshold)\
-                         .order_by(Diary.created_at.desc())\
-                         .all()
-                         
+def index():
+    # ★変更: 全件取得（時間制限なし）
+    diaries = Diary.query.order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=diaries)
 
 @app.route('/search')
@@ -185,11 +170,10 @@ def timeline():
 def search():
     query = request.args.get('q')
     if not query:
-        return redirect(url_for('timeline'))
+        # ★変更: 戻り先をindexに
+        return redirect(url_for('index'))
     
-    # 合言葉で検索（完全一致）
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
-    
     return render_template('timeline.html', diaries=results, search_query=query)
 
 if __name__ == '__main__':
