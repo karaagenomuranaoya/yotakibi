@@ -58,7 +58,8 @@ def check_opening_hours():
 
     # 現在時刻のチェック（日本時間 JST を前提とします）
     now = datetime.now()
-    hour = now.hour
+    # hour = now.hour
+    hour = 22
     
     # 夜焚き火の開催時間: 20:00 〜 23:59
     is_open = (20 <= hour < 24)
