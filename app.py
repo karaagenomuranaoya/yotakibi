@@ -41,27 +41,35 @@ with app.app_context():
 # --- 門番関数 ---
 @app.before_request
 def check_opening_hours():
-    # ★審査用：24時間オープン（無効化中）
-    return
-
-    if request.path.startswith('/static'):
-        return
-
+    # 1. 管理者（シークレットモード）判定を最初に行う
     secret_key = request.args.get('admin_key')
     if secret_key == 'secret_open':
         session['is_admin'] = True
     
+    # 管理者は時間制限を無視して通過
     if session.get('is_admin'):
         return
 
+    # 静的ファイルへのアクセスは常に許可
+    if request.path.startswith('/static'):
+        return
+
+    # ★審査用：24時間オープン（もし通常営業モードに戻すなら、下の return を削除またはコメントアウトしてください）
+    return
+
+    # --- 以下、通常営業（夜間のみ）のロジック ---
     now = datetime.now()
     hour = now.hour
     
+    # 19:00〜24:59 (深夜1時未満) はオープン
     is_open = (hour >= 19) or (hour < 1)
     
     if not is_open:
+        # すでに「おやすみ画面」にいるならリダイレクトしない
         if request.endpoint == 'sleeping':
             return
+            
+        # 理由判定（深夜か昼間か）
         if 0 <= hour < 6:
             reason = 'midnight'
         else:
@@ -85,7 +93,6 @@ def sleeping():
     reason = request.args.get('reason', 'daytime')
     return render_template('sleeping.html', reason=reason)
 
-# ★追加：説明書ページへのルート
 @app.route('/manual')
 def manual():
     return render_template('manual.html')
@@ -120,9 +127,12 @@ def write():
             flash('種火が短すぎると、すぐに消えてしまいます（2文字以上）', 'error')
             return render_template('index.html', kept_content=content)
 
-        # 投稿時間の決定（ランダム日時）
+        # 投稿時間の決定（ランダム日時処理）
         if session.get('is_admin'):
-            random_minutes = random.randint(0, 10000)
+            # 現在時刻から過去1週間（7日間）の範囲でランダムな分数を引く
+            # 7日 * 24時間 * 60分 = 10080分
+            one_week_minutes = 7 * 24 * 60 
+            random_minutes = random.randint(0, one_week_minutes)
             post_time = datetime.now() - timedelta(minutes=random_minutes)
         else:
             post_time = datetime.now()
