@@ -13,7 +13,7 @@
         </h2>
 
         <form action="{{ url_for('search') }}" method="GET" class="search-form">
-            <input type="text" name="q" placeholder="合言葉..." value="{{ search_query if search_query else '' }}">
+            <input type="text" name="q" placeholder="種火..." value="{{ search_query if search_query else '' }}">
             <button type="submit">火を辿る</button>
         </form>
     </header>

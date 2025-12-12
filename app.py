@@ -58,11 +58,10 @@ def check_opening_hours():
 
     # 現在時刻のチェック（日本時間 JST を前提とします）
     now = datetime.now()
-    # hour = now.hour
-    hour = 22
+    hour = now.hour
     
     # 夜焚き火の開催時間: 20:00 〜 23:59
-    is_open = (20 <= hour < 24)
+    is_open = (19 <= hour < 24)
 
     if not is_open:
         # すでに「眠る時間（sleeping）」ページにいるならリダイレクトしない（無限ループ防止）
@@ -135,9 +134,29 @@ def index():
             return render_template('index.html', kept_content=content)
 
         # 保存処理
-        new_diary = Diary(content=content, aikotoba=aikotoba, is_public=is_public)
+        # --- ここから変更 ---
+
+        # 投稿時間の決定
+        # もし管理者（自分）なら、時間を「今日の22:00〜23:59」のどこかに偽装する
+        if session.get('is_admin'):
+            # 例: 今日の22時22分にする（分までこだわるとリアルです！）
+            post_time = datetime.now().replace(hour=19, minute=15, second=0, microsecond=0)
+        else:
+            # 一般ユーザーは正直な現在時刻
+            post_time = datetime.now()
+
+        # 保存処理（created_at を明示的に渡すのがポイント！）
+        new_diary = Diary(
+            content=content, 
+            aikotoba=aikotoba, 
+            is_public=is_public,
+            created_at=post_time  # ★ここで偽装した時間を渡す
+        )
+        
         db.session.add(new_diary)
         db.session.commit()
+        
+        # --- ここまで変更 ---
 
         # セッションに「投稿済み」の証を残す
         session['has_posted'] = True
