@@ -81,6 +81,10 @@ def check_opening_hours():
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # ★追加: 管理者(is_admin)なら、投稿してなくても通す！
+        if session.get('is_admin'):
+            return f(*args, **kwargs)
+        
         if not session.get('has_posted'):
             # まだ投稿していない人がタイムラインを見ようとした場合
             flash('薪を一つ、焚べてからにしませんか。', 'error')
