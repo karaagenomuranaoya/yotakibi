@@ -61,8 +61,10 @@ def check_opening_hours():
     hour = now.hour
     
     # 夜焚き火の開催時間: 20:00 〜 23:59
-    is_open = (19 <= hour < 24)
-
+    # 開発中につき
+    # is_open = (19 <= hour < 24)
+    is_open = True
+    
     if not is_open:
         # すでに「眠る時間（sleeping）」ページにいるならリダイレクトしない（無限ループ防止）
         if request.endpoint == 'sleeping':
