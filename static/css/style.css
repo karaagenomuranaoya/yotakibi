@@ -374,7 +374,8 @@ footer {
     transform: translateX(100%); 
     
     /* rightプロパティではなく、transformをアニメーションさせる */
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.3s;
+    visibility: hidden;
     
     display: flex;
     flex-direction: column;
@@ -384,6 +385,8 @@ footer {
 .pin-sidebar.active {
     /* ★変更: transformをリセットして画面内に戻す */
     transform: translateX(0);
+
+    visibility: visible;
 }
 
 /* 閉じるタブ */
