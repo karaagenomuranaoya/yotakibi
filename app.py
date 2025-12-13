@@ -90,9 +90,19 @@ def manual():
 @app.route('/')
 @fire_required
 def index():
-    diaries = Diary.query.filter_by(is_public=True).order_by(Diary.created_at.desc()).all()
-    # ファイル名変更に伴い、テンプレート名を index.html (旧timeline) に指定
-    return render_template('index.html', diaries=diaries)
+    # URLパラメータからページ番号を取得（デフォルトは1ページ目）
+    page = request.args.get('page', 1, type=int)
+    
+    # 1ページあたりの表示件数（例えば 10件）
+    per_page = 10 
+    
+    # paginate() を使ってデータを取得
+    pagination = Diary.query.filter_by(is_public=True).order_by(Diary.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    # 表示用データ（items）とページネーション情報本身（pagination）を渡す
+    return render_template('index.html', diaries=pagination.items, pagination=pagination)
 
 # 【変更】書き込みページ（GET:フォーム表示 / POST:保存処理）
 @app.route('/write', methods=['GET', 'POST'])

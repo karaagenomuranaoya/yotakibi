@@ -3,6 +3,7 @@
 {% block content %}
 <div class="timeline-container">
 
+    {# --- ヘッダーエリア --- #}
     <div style="text-align: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid #5C4A3D;">
         <h1 class="logo" style="margin-bottom: 1rem;">
             夜焚き火
@@ -27,36 +28,28 @@
         <style>
             .guide-nav {
                 text-align: center;
-                /* 上の余白は維持しつつ、下の余白を 2.5rem -> 1rem に詰めました */
                 margin: 1.5rem 0 1rem 0;
             }
 
             .guide-link {
                 display: inline-block;
-                /* 文字色を明るい小麦色に変更 */
                 color: #F5DEB3;
-                /* 背景を少し明るい焦げ茶色に */
                 background: #2C241B;
                 padding: 0.6rem 1.5rem;
                 border-radius: 30px;
-                /* 枠線を最初からはっきり表示 */
                 border: 1px solid #8B4513;
                 font-size: 0.95rem;
                 text-decoration: none;
                 transition: all 0.3s ease;
-                /* 影をつけて少し浮き上がらせる */
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
             }
 
             .guide-link:hover {
                 background: #3E3226;
                 border-color: #D4AF37;
-                /* ホバー時に枠が金に */
                 color: #FFF;
-                /* ホバー時に文字を白く */
                 box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
                 transform: translateY(-2px);
-                /* 少しだけふわっと浮く */
             }
         </style>
 
@@ -66,7 +59,7 @@
         </a>
     </div>
 
-
+    {# --- 検索バー --- #}
     <header class="timeline-header">
         <h2 class="page-title">
             {% if search_query %}
@@ -90,13 +83,13 @@
     </div>
     {% endif %}
 
+    {# --- 日記リスト --- #}
     <div class="diary-list">
         {% for diary in diaries %}
         <div class="diary-card">
             <div class="diary-meta">
                 <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
 
-                {# --- ここを修正 --- #}
                 {% if diary.show_aikotoba %}
                 {# チェックが付いている時だけ種火を表示 #}
                 <a href="{{ url_for('search', q=diary.aikotoba) }}" style="text-decoration: none;">
@@ -106,7 +99,6 @@
                 {# チェックがない時は隠す #}
                 <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
                 {% endif %}
-                {# --- ここまで --- #}
             </div>
 
             {# --- 長文判定ロジック --- #}
@@ -121,7 +113,7 @@
             </button>
             {% endif %}
 
-            {# --- 管理者用削除ボタン（ここに追加） --- #}
+            {# --- 管理者用削除ボタン --- #}
             {% if session.get('is_admin') %}
             <form action="{{ url_for('extinguish', diary_id=diary.id) }}" method="POST"
                 style="text-align: right; margin-top: 1.5rem; opacity: 0.8;">
@@ -145,6 +137,67 @@
         </div>
         {% endfor %}
     </div>
+
+    {# --- ページネーション（ここが追加機能） --- #}
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination">
+        {# 前へボタン #}
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('index', page=pagination.prev_num) }}" class="page-link">&laquo; 前の夜</a>
+        {% else %}
+        <span class="page-link disabled">&laquo; 前の夜</span>
+        {% endif %}
+
+        {# ページ番号 #}
+        <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+
+        {# 次へボタン #}
+        {% if pagination.has_next %}
+        <a href="{{ url_for('index', page=pagination.next_num) }}" class="page-link">次の夜 &raquo;</a>
+        {% else %}
+        <span class="page-link disabled">前の夜 &raquo;</span>
+        {% endif %}
+    </div>
+
+    <style>
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .page-link {
+            color: #D4AF37;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid #5C4A3D;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .page-link:hover:not(.disabled) {
+            background-color: #3E3228;
+            border-color: #D4AF37;
+        }
+
+        .page-link.disabled {
+            opacity: 0.3;
+            cursor: default;
+            border-color: transparent;
+        }
+
+        .page-info {
+            color: #E0D6C8;
+            opacity: 0.7;
+            letter-spacing: 0.1em;
+        }
+    </style>
+    {% endif %}
+    {# --- ここまで --- #}
 
     <div class="back-link">
         {% if search_query %}
