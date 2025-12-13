@@ -20,36 +20,28 @@
     <style>
         .guide-nav {
             text-align: center;
-            /* 上の余白は維持しつつ、下の余白を 2.5rem -> 1rem に詰めました */
             margin: 1.5rem 0 1rem 0;
         }
 
         .guide-link {
             display: inline-block;
-            /* 文字色を明るい小麦色に変更 */
             color: #F5DEB3;
-            /* 背景を少し明るい焦げ茶色に */
             background: #2C241B;
             padding: 0.6rem 1.5rem;
             border-radius: 30px;
-            /* 枠線を最初からはっきり表示 */
             border: 1px solid #8B4513;
             font-size: 0.95rem;
             text-decoration: none;
             transition: all 0.3s ease;
-            /* 影をつけて少し浮き上がらせる */
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
         }
 
         .guide-link:hover {
             background: #3E3226;
             border-color: #D4AF37;
-            /* ホバー時に枠が金に */
             color: #FFF;
-            /* ホバー時に文字を白く */
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
             transform: translateY(-2px);
-            /* 少しだけふわっと浮く */
         }
     </style>
 
@@ -81,36 +73,116 @@
                 自分だけの秘密にしたい場合は、<strong>生成ボタン</strong>を押して、あなただけの特別な火を作ってください。
             </span>
 
-            {# --- 変更箇所：公開設定パネル --- #}
-            <div class="form-group"
-                style="margin-top: 1.5rem; background: rgba(62, 50, 40, 0.3); padding: 1rem; border-radius: 4px;">
+            {# --- 変更箇所：重要な設定は外に出す --- #}
+            <div style="margin-top: 1.5rem; background: rgba(62, 50, 40, 0.3); padding: 1rem; border-radius: 4px;">
                 <label
                     style="margin-bottom: 0.8rem; border-bottom: 1px dashed #5C4A3D; padding-bottom: 0.5rem; width: 100%; color: #D4AF37;">
                     公開設定
                 </label>
 
+                {# 1. タイムライン掲載 #}
                 <div class="checkbox-group">
-                    <input type="checkbox" name="is_public" id="is_public" value="1" checked>
-                    <label for="is_public" class="checkbox-label">
-                        タイムラインに薪をくべる（掲載する）
+                    <input type="checkbox" name="is_timeline_public" id="is_timeline_public" value="1" checked>
+                    <label for="is_timeline_public" class="checkbox-label">
+                        タイムラインに薪をくべる
                     </label>
                 </div>
-                <p class="hint" style="margin-left: 1.5rem; margin-bottom: 1rem;">
-                    チェックを外すと、検索（種火を知っている人）以外からは見えなくなります。
+                <p class="hint indent-hint">
+                    チェックを外すと、種火を知っている人の検索以外からは見えなくなります。
                 </p>
 
+                {# 2. 合言葉の公開 #}
                 <div class="checkbox-group">
-                    <input type="checkbox" name="show_aikotoba" id="show_aikotoba" value="1">
-                    <label for="show_aikotoba" class="checkbox-label">
-                        種火（合言葉）の名前を表示する
+                    <input type="checkbox" name="is_aikotoba_public" id="is_aikotoba_public" value="1">
+                    <label for="is_aikotoba_public" class="checkbox-label">
+                        タイムラインに種火（合言葉）を表示する
                     </label>
                 </div>
-                <p class="hint" style="margin-left: 1.5rem;">
-                    チェックをつけるとタイムラインに種火が公開されます。<br>
-                    連載をしたい時や、継続的に見てもらいたいときにご利用ください。<br>
+                <p class="hint indent-hint">
+                    連載など、継続的に見てもらいたい時に便利です。
                 </p>
+
+                {# --- 変更箇所：SNS設定だけを折りたたむ --- #}
+                <div style="margin-top: 1.5rem;">
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            SNSシェアなどの設定
+                            <span style="font-size: 0.8em; opacity: 0.7; margin-left: 0.5em;">▼</span>
+                        </summary>
+
+                        <div class="settings-content">
+                            {# 3. SNS利用許可 #}
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="allow_sns_share" id="allow_sns_share" value="1">
+                                <label for="allow_sns_share" class="checkbox-label">
+                                    公式SNS等での紹介・引用を許可する
+                                </label>
+                            </div>
+                            <p class="hint indent-hint">
+                                夜焚き火の公式アカウント等で、素敵な火として紹介させていただく場合があります。
+                            </p>
+
+                            {# 4. SNSでの合言葉公開 #}
+                            <div class="checkbox-group child-checkbox">
+                                <input type="checkbox" name="allow_aikotoba_sns" id="allow_aikotoba_sns" value="1"
+                                    disabled>
+                                <label for="allow_aikotoba_sns" class="checkbox-label">
+                                    その際、種火も併せて公開して良い
+                                </label>
+                            </div>
+                        </div>
+                    </details>
+                </div>
             </div>
-            {# --- 変更箇所ここまで --- #}
+
+            <style>
+                .settings-details {
+                    /* 背景色は親要素でついているので、ここは枠線だけでも良いが、区別のために少し濃くする */
+                    background-color: rgba(44, 36, 27, 0.5);
+                    border: 1px solid #5C4A3D;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    transition: all 0.3s;
+                }
+
+                .settings-summary {
+                    padding: 0.8rem;
+                    cursor: pointer;
+                    color: #D4AF37;
+                    /* 琥珀色 */
+                    font-size: 0.9rem;
+                    list-style: none;
+                    outline: none;
+                }
+
+                .settings-summary::-webkit-details-marker {
+                    display: none;
+                }
+
+                .settings-content {
+                    padding: 0 1rem 1rem 1rem;
+                    border-top: 1px solid rgba(92, 74, 61, 0.3);
+                    animation: fadeIn 0.3s ease;
+                }
+
+                .indent-hint {
+                    margin-left: 1.8rem;
+                    margin-bottom: 1rem;
+                    font-size: 0.8rem;
+                    opacity: 0.7;
+                }
+
+                .child-checkbox {
+                    margin-left: 1.5rem;
+                    opacity: 0.6;
+                    transition: opacity 0.3s;
+                }
+
+                .child-checkbox.active {
+                    opacity: 1;
+                }
+            </style>
+            {# --- ここまで --- #}
 
             {# --- 管理者用：時の調整パネル --- #}
             {% if session.get('is_admin') %}
@@ -121,13 +193,11 @@
                     指定しない場合は、通常通りランダムな過去の夜になります。
                 </span>
             </div>
-
             <style>
                 .admin-time-control {
                     margin-top: 1.5rem;
                     padding: 1rem;
                     border: 1px dashed #D4AF37;
-                    /* 琥珀色の破線 */
                     border-radius: 4px;
                     background-color: rgba(62, 50, 40, 0.3);
                 }
@@ -147,22 +217,16 @@
                     border-radius: 4px;
                     font-family: inherit;
                     width: 100%;
-                    /* カレンダーアイコンの色反転 */
                     color-scheme: dark;
-                }
-
-                .time-input:focus {
-                    border-color: #D4AF37;
-                    outline: none;
                 }
             </style>
             {% endif %}
-            {# --- ここまで --- #}
 
         </div>
 
         <button type="submit" class="btn-burn">火を焚べる</button>
     </form>
+
     <div class="write-back-nav">
         <a href="{{ url_for('index') }}" class="write-back-link">
             &lt; 焚き火に戻る
@@ -178,23 +242,18 @@
         .write-back-link {
             display: inline-block;
             color: #E0D6C8;
-            /* 明るい文字色 */
             border: 1px solid #5C4A3D;
-            /* 枠線をつける */
             padding: 0.6rem 2rem;
             border-radius: 4px;
             text-decoration: none;
             font-size: 0.9rem;
             background: rgba(0, 0, 0, 0.3);
-            /* 少し背景を暗くして文字を浮き立たせる */
             transition: all 0.3s ease;
         }
 
         .write-back-link:hover {
             border-color: #D4AF37;
-            /* ホバーで枠を金色に */
             color: #D4AF37;
-            /* 文字も金色に */
             background: rgba(44, 36, 27, 0.8);
         }
     </style>
@@ -202,22 +261,38 @@
 
 <script>
     function generateRandomKey() {
-        // ランダムな英数字10文字を生成
         const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let result = "";
         for (let i = 0; i < 12; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-
-        // 入力欄にセット
         const input = document.getElementById('aikotoba');
         input.value = result;
-
-        // 生成したことがわかるように少しエフェクト（点滅）
         input.style.backgroundColor = "#5C4A3D";
         setTimeout(() => {
             input.style.backgroundColor = "#3E3228";
         }, 200);
     }
+
+    // --- チェックボックスの連動制御 ---
+    document.addEventListener('DOMContentLoaded', function () {
+        const snsShare = document.getElementById('allow_sns_share');
+        const snsAikotoba = document.getElementById('allow_aikotoba_sns');
+        const snsAikotobaContainer = snsAikotoba.closest('.child-checkbox');
+
+        function updateState() {
+            if (snsShare.checked) {
+                snsAikotoba.disabled = false;
+                snsAikotobaContainer.classList.add('active');
+            } else {
+                snsAikotoba.checked = false;
+                snsAikotoba.disabled = true;
+                snsAikotobaContainer.classList.remove('active');
+            }
+        }
+
+        snsShare.addEventListener('change', updateState);
+        updateState();
+    });
 </script>
 {% endblock %}
