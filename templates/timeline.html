@@ -4,7 +4,12 @@
 <div class="timeline-container">
 
     <div style="text-align: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid #5C4A3D;">
-        <h1 class="logo" style="margin-bottom: 1rem;">夜焚き火</h1><br>
+        <h1 class="logo" style="margin-bottom: 1rem;">
+            夜焚き火
+            <span style="display: block; font-size: 0.5em; letter-spacing: 0.2em; opacity: 0.8; margin-top: 0.2rem;">
+                - Yotakibi -
+            </span>
+        </h1><br>
         <p style="font-size: 0.9rem; opacity: 0.8; line-height: 1.8;">
             ここは秘密の焚き火場。<br>
             誰にも言えない言葉を薪にして<br>
@@ -108,6 +113,23 @@
             <button class="read-more-btn" onclick="toggleDiary('{{ diary.id }}', this)">
                 もっと火にあたる
             </button>
+            {% endif %}
+
+            {# --- 管理者用削除ボタン（ここに追加） --- #}
+            {% if session.get('is_admin') %}
+            <form action="{{ url_for('extinguish', diary_id=diary.id) }}" method="POST"
+                style="text-align: right; margin-top: 1.5rem; opacity: 0.8;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" onclick="return confirm('本当にこの火を消しますか？\n（削除すると元に戻せません）')"
+                    style="background: none; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-family: inherit; transition: all 0.2s;">
+                    🚫 消火（削除）
+                </button>
+                <style>
+                    button[type="submit"]:hover {
+                        background-color: rgba(255, 107, 107, 0.1);
+                    }
+                </style>
+            </form>
             {% endif %}
 
         </div>
