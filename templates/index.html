@@ -153,7 +153,7 @@
 
         {# 次へボタン #}
         {% if pagination.has_next %}
-        <a href="{{ url_for('index', page=pagination.next_num) }}" class="page-link">次の夜 &raquo;</a>
+        <a href="{{ url_for('index', page=pagination.next_num) }}" class="page-link"> &raquo;</a>
         {% else %}
         <span class="page-link disabled">前の夜 &raquo;</span>
         {% endif %}
