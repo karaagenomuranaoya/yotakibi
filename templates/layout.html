@@ -24,6 +24,57 @@
 </head>
 
 <body>
+    {% if session.get('is_admin') %}
+    <div class="admin-watch-badge">
+        <span class="fire-icon">🔥</span> 火の番をしよう
+    </div>
+    <style>
+        .admin-watch-badge {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            font-family: 'Noto Serif JP', serif;
+            font-size: 0.8rem;
+            color: #D4AF37;
+            background-color: rgba(44, 36, 27, 0.85);
+            border: 1px solid #5C4A3D;
+            padding: 8px 16px;
+            border-radius: 20px;
+            letter-spacing: 0.1em;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            backdrop-filter: blur(2px);
+            animation: flicker 4s infinite alternate;
+        }
+
+        .fire-icon {
+            margin-right: 4px;
+            filter: drop-shadow(0 0 4px #e65100);
+        }
+
+        @keyframes flicker {
+            0% {
+                opacity: 0.8;
+                box-shadow: 0 2px 10px rgba(212, 175, 55, 0.1);
+            }
+
+            100% {
+                opacity: 1.0;
+                box-shadow: 0 2px 15px rgba(212, 175, 55, 0.2);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-watch-badge {
+                top: 10px;
+                left: 10px;
+                font-size: 0.7rem;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+    {% endif %}
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -40,9 +91,6 @@
         <footer>
             <small>&copy; Yotakibi. 静かな夜を。</small>
             <div style="margin-top: 0.5rem;">
-                <a href="{{ url_for('manual') }}"
-                    style="color: #D4AF37; font-size: 0.8rem; text-decoration: underline; margin-right: 1rem;">夜焚き火の歩き方</a>
-
             </div>
         </footer>
     </div>

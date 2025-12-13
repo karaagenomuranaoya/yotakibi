@@ -5,12 +5,12 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
-from flask_wtf import CSRFProtect # 【追加】CSRF対策用
+from flask_wtf import CSRFProtect
 
 app = Flask(__name__)
 
 # --- 設定周り ---
-# 【重要】本番環境では推測不可能なランダムな文字列を環境変数 SECRET_KEY に設定してください
+# 本番環境では環境変数 SECRET_KEY を設定してください
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-keep-it-secret-yotakibi')
 
 # データベース接続設定
@@ -26,7 +26,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 db = SQLAlchemy(app)
-csrf = CSRFProtect(app) # 【追加】アプリ全体でCSRF保護を有効化
+csrf = CSRFProtect(app)
 
 # --- モデル定義 ---
 class Diary(db.Model):
@@ -45,11 +45,12 @@ with app.app_context():
 @app.before_request
 def check_opening_hours():
     # 1. 管理者（シークレットモード）判定
-    # ハードコードをやめ、環境変数 ADMIN_KEY と一致する場合のみ許可
     input_key = request.args.get('admin_key')
-    env_admin_key = os.environ.get('ADMIN_KEY') # 環境変数で設定すること
     
-    if env_admin_key and input_key == env_admin_key:
+    # 環境変数がない場合（ローカル）は 'local_secret_open' を正解の鍵にする
+    env_admin_key = os.environ.get('ADMIN_KEY', 'local_secret_open') 
+    
+    if input_key == env_admin_key:
         session['is_admin'] = True
     
     # 管理者は時間制限を無視して通過
@@ -60,8 +61,9 @@ def check_opening_hours():
     if request.path.startswith('/static'):
         return
 
-    # 【修正】開発用の強制オープン（return）を削除しました。
-    # これにより、以下の時間制限ロジックが正常に機能します。
+    # 【追加】説明書ページ(manual)へのアクセスも常に許可
+    if request.endpoint == 'manual':
+        return
 
     # --- 以下、通常営業（夜間のみ）のロジック ---
     now = datetime.now()
@@ -87,7 +89,6 @@ def check_opening_hours():
 def fire_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # 審査用などの制限無効化ロジックがあればここに書く
         return f(*args, **kwargs)
         
     return decorated_function
@@ -106,7 +107,6 @@ def manual():
 @app.route('/write', methods=['GET', 'POST'])
 def write():
     if request.method == 'POST':
-        # CSRFチェックはFlask-WTFが自動で行います
         content = request.form.get('content')
         aikotoba = request.form.get('aikotoba')
         is_public = True if request.form.get('is_public') else False
@@ -136,9 +136,22 @@ def write():
 
         # 投稿時間の決定（ランダム日時処理）
         if session.get('is_admin'):
-            one_week_minutes = 7 * 24 * 60 
-            random_minutes = random.randint(0, one_week_minutes)
-            post_time = datetime.now() - timedelta(minutes=random_minutes)
+            # 1. まず「何日前か」をランダムに決める（0日前〜7日前）
+            days_ago = random.randint(0, 7)
+            base_date = datetime.now() - timedelta(days=days_ago)
+
+            # 2. その日の「19:02」を基準セットする
+            base_time = base_date.replace(hour=19, minute=2, second=0, microsecond=0)
+
+            # 3. 19:02 から 24:56 までの「幅」を分単位で計算 (合計354分)
+            random_minutes = random.randint(0, 354)
+
+            # 4. 基準時間にランダムな分数を足す
+            post_time = base_time + timedelta(minutes=random_minutes)
+
+            # 【安全装置】未来になってしまったら1日戻す
+            if post_time > datetime.now():
+                post_time = post_time - timedelta(days=1)
         else:
             post_time = datetime.now()
 
@@ -163,8 +176,7 @@ def write():
 @app.route('/')
 @fire_required
 def index():
-    # 【修正】トップページには「公開(is_public=True)」の火だけを表示する
-    # これにより「秘密の火」がタイムラインに流出する事故を防ぎます
+    # トップページには「公開(is_public=True)」の火だけを表示
     diaries = Diary.query.filter_by(is_public=True).order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=diaries)
 
@@ -175,12 +187,9 @@ def search():
     if not query:
         return redirect(url_for('index'))
     
-    # 検索機能は「合言葉を知っている」前提なので、
-    # ここでは秘密の火(is_public=False)も含めて検索できるようにしておきます。
-    # もし「秘密の火」は検索でも出したくない場合は、ここにも filter_by(is_public=True) を追加してください。
+    # 検索結果には秘密の火も表示（合言葉を知っている人向け）
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
     return render_template('timeline.html', diaries=results, search_query=query)
 
 if __name__ == '__main__':
-    # 【修正】デバッグモードをFalseに変更（必須）
     app.run(debug=False)

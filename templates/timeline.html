@@ -22,8 +22,8 @@
         <style>
             .guide-nav {
                 text-align: center;
-                margin: 1.5rem 0 2.5rem 0;
-                /* 上下の余白を少し広げました */
+                /* 上の余白は維持しつつ、下の余白を 2.5rem -> 1rem に詰めました */
+                margin: 1.5rem 0 1rem 0;
             }
 
             .guide-link {
@@ -56,7 +56,7 @@
         </style>
 
         <a href="{{ url_for('write') }}" class="btn-burn"
-            style="display: inline-block; width: auto; padding: 0.8rem 2rem; margin-top: 1.5rem; text-decoration: none;">
+            style="display: inline-block; width: auto; padding: 0.8rem 2rem; margin-top: 0.5rem; text-decoration: none;">
             薪をくべる（書く）
         </a>
     </div>
@@ -120,10 +120,9 @@
 
     <div class="back-link">
         {% if search_query %}
-        <a href="{{ url_for('index') }}" style="margin-right: 1.5rem;">全ての火に戻る</a>
-        {% endif %}
-
+        <a href="{{ url_for('index') }}">全ての火に戻る</a>
         <a href="{{ url_for('write') }}">もう一度、薪をくべる</a>
+        {% endif %}
     </div>
 </div>
 

@@ -256,8 +256,12 @@ footer {
 
 /* 戻るリンク */
 .back-link {
-    margin-top: 3rem;
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem; /* 子要素同士の間隔 */
+    /* 必要に応じて整列も設定 */
+    align-items: center; 
+    justify-content: center;
 }
 
 .back-link a {
