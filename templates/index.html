@@ -137,6 +137,21 @@
                             <button type="submit" class="btn-memo-save">保存</button>
                         </form>
 
+                        {# 条件：SNSシェア許可(allow_sns_share) かつ タイムライン公開(is_timeline_public) の場合のみボタンを表示 #}
+                        {% if diary.allow_sns_share and diary.is_timeline_public %}
+                        <button type="button" {# allow_aikotoba_sns (種火公開許可) も引数に追加しておきます #}
+                            onclick="togglePin('{{ diary.id }}', `{{ diary.content|replace('`', '') }}`, '{{ diary.aikotoba }}', {{ 'true' if diary.allow_aikotoba_sns else 'false' }})"
+                            class="btn-pin" id="btn-pin-{{ diary.id }}">
+                            📌 keep
+                        </button>
+                        {% else %}
+                        {# SNS不可などの場合は、誤操作防止のためボタンを表示しない（あるいはDisabledなアイコンだけ置く） #}
+                        <span style="font-size:0.8rem; opacity:0.3; padding: 4px; cursor: not-allowed;"
+                            title="この火はSNSへの持ち出しが許可されていません">
+                            🔒 keep不可
+                        </span>
+                        {% endif %}
+
                         {# 消火ボタン #}
                         <form action="{{ url_for('extinguish', diary_id=diary.id) }}" method="POST"
                             style="text-align: right; margin-top: 0.5rem;">
@@ -307,5 +322,142 @@
         }
     }
 </script>
+
+{% if session.get('is_admin') %}
+<div id="pin-sidebar" class="pin-sidebar">
+    <div class="pin-close-tab" onclick="toggleSidebar()">▶</div>
+
+    <div class="pin-header">
+        <span>📌 ストック (SNS用)</span>
+    </div>
+
+    <div id="pin-list" class="pin-list">
+    </div>
+    <div class="pin-footer">
+        <button onclick="clearPins()"
+            style="font-size:0.8rem; background:none; border:none; color:#888; cursor:pointer;">全削除</button>
+    </div>
+</div>
+
+<div id="pin-toggle" class="pin-toggle" onclick="toggleSidebar()">◀</div>
+<script>
+    // --- JSロジック ---
+    document.addEventListener('DOMContentLoaded', () => {
+        renderPins();
+        updateButtons();
+    });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('pin-sidebar');
+        sidebar.classList.toggle('active');
+    }
+
+    // ピン留め切り替え（isAikotobaOKを追加）
+    function togglePin(id, content, aikotoba, isAikotobaOK) {
+        let pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
+        const existingIndex = pins.findIndex(p => p.id === id);
+
+        if (existingIndex >= 0) {
+            pins.splice(existingIndex, 1);
+        } else {
+            pins.push({ id, content, aikotoba, isAikotobaOK, added_at: new Date().toISOString() });
+            document.getElementById('pin-sidebar').classList.add('active');
+        }
+
+        localStorage.setItem('yotakibi_pins', JSON.stringify(pins));
+        renderPins();
+        updateButtons();
+    }
+
+    // サイドバーの描画（種火の安全性考慮版）
+    function renderPins() {
+        const pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
+        const listEl = document.getElementById('pin-list');
+        listEl.innerHTML = '';
+
+        if (pins.length === 0) {
+            listEl.innerHTML = '<div style="padding:1rem; text-align:center; opacity:0.5; font-size:0.8rem;">まだストックはありません</div>';
+            return;
+        }
+
+        pins.forEach(pin => {
+            const div = document.createElement('div');
+            div.className = 'pin-card';
+
+            // 種火公開OKなら表示、NGなら隠す
+            let aikotobaHtml = '';
+            if (pin.isAikotobaOK) {
+                aikotobaHtml = `
+                    <div class="pin-aikotoba" onclick="copyString('${pin.aikotoba}', this)" title="タップで種火をコピー">
+                        🔥 ${pin.aikotoba}
+                    </div>`;
+            } else {
+                aikotobaHtml = `
+                    <div style="font-size:0.7rem; color:#888; border:1px dashed #555; padding:2px 6px; border-radius:4px;">
+                        🔒 種火非公開
+                    </div>`;
+            }
+
+            div.innerHTML = `
+                <div class="pin-meta">
+                    <span class="pin-id">#${pin.id}</span>
+                    ${aikotobaHtml}
+                </div>
+                <textarea rows="4" readonly onclick="this.select()">${pin.content}</textarea>
+                <div class="pin-actions">
+                    <button class="pin-btn-mini" onclick="copyText(this)">本文Copy</button>
+                    <button class="pin-btn-mini" style="background:#8b3a3a;" onclick="togglePin('${pin.id}')">削除</button>
+                </div>
+            `;
+            listEl.appendChild(div);
+        });
+    }
+
+    function updateButtons() {
+        const pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
+        document.querySelectorAll('.btn-pin').forEach(btn => {
+            btn.classList.remove('pinned');
+            btn.textContent = '📌 keep';
+        });
+
+        pins.forEach(pin => {
+            const btn = document.getElementById('btn-pin-' + pin.id);
+            if (btn) {
+                btn.classList.add('pinned');
+                btn.textContent = '✅ in stock';
+            }
+        });
+    }
+
+    function clearPins() {
+        if (confirm('ストックを全て空にしますか？')) {
+            localStorage.removeItem('yotakibi_pins');
+            renderPins();
+            updateButtons();
+        }
+    }
+
+    function copyText(btn) {
+        const textarea = btn.parentElement.previousElementSibling;
+        textarea.select();
+        document.execCommand('copy');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = original, 1000);
+    }
+
+    function copyString(text, element) {
+        navigator.clipboard.writeText(text).then(() => {
+            const original = element.innerHTML;
+            element.innerHTML = '✨ Copied!';
+            element.style.borderColor = '#fff';
+            setTimeout(() => {
+                element.innerHTML = original;
+                element.style.borderColor = '#5C4A3D';
+            }, 1000);
+        });
+    }
+</script>
+{% endif %}
 
 {% endblock %}
