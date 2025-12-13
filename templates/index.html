@@ -40,16 +40,36 @@
                 自分だけの秘密にしたい場合は、<strong>生成ボタン</strong>を押して、あなただけの特別な火を作ってください。
             </span>
 
-            <div class="checkbox-group">
-                <input type="checkbox" name="is_public" id="is_public" value="1" checked>
-                <label for="is_public" class="checkbox-label">
-                    この種火をタイムラインに表示する<br>
-                    <span style="font-size: 0.8rem; opacity: 0.7;">
-                        ※チェックすると、同じ種火を使っていることが他の人に分かります。<br>
-                        （自分だと気づかれたくない場合は外してください）
-                    </span>
+            {# --- 変更箇所：公開設定パネル --- #}
+            <div class="form-group"
+                style="margin-top: 1.5rem; background: rgba(62, 50, 40, 0.3); padding: 1rem; border-radius: 4px;">
+                <label
+                    style="margin-bottom: 0.8rem; border-bottom: 1px dashed #5C4A3D; padding-bottom: 0.5rem; width: 100%; color: #D4AF37;">
+                    公開設定
                 </label>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_public" id="is_public" value="1" checked>
+                    <label for="is_public" class="checkbox-label">
+                        タイムラインに薪をくべる（掲載する）
+                    </label>
+                </div>
+                <p class="hint" style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                    チェックを外すと、検索（種火を知っている人）以外からは見えなくなります。
+                </p>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" name="show_aikotoba" id="show_aikotoba" value="1">
+                    <label for="show_aikotoba" class="checkbox-label">
+                        種火（合言葉）の名前を表示する
+                    </label>
+                </div>
+                <p class="hint" style="margin-left: 1.5rem;">
+                    チェックをつけるとタイムラインに種火が公開されます。<br>
+                    連載をしたい時や、継続的に見てもらいたいときにご利用ください。<br>
+                </p>
             </div>
+            {# --- 変更箇所ここまで --- #}
 
             {# --- 管理者用：時の調整パネル --- #}
             {% if session.get('is_admin') %}

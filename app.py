@@ -35,6 +35,7 @@ class Diary(db.Model):
     content = db.Column(db.Text, nullable=False)
     aikotoba = db.Column(db.String(50), nullable=False)
     is_public = db.Column(db.Boolean, default=False) 
+    show_aikotoba = db.Column(db.Boolean, default=True) # 【追加】種火名を公開するかどうか
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 # アプリ起動時にテーブルを作成
@@ -61,7 +62,7 @@ def check_opening_hours():
     if request.path.startswith('/static'):
         return
 
-    # 【追加】説明書ページ(manual)へのアクセスも常に許可
+    # 説明書ページ(manual)へのアクセスも常に許可
     if request.endpoint == 'manual':
         return
 
@@ -109,7 +110,10 @@ def write():
     if request.method == 'POST':
         content = request.form.get('content')
         aikotoba = request.form.get('aikotoba')
+        
+        # チェックボックスの値を取得（チェックがあればTrue）
         is_public = True if request.form.get('is_public') else False
+        show_aikotoba = True if request.form.get('show_aikotoba') else False # 【追加】
 
         # 1. 必須チェック
         if not content or not aikotoba:
@@ -176,6 +180,7 @@ def write():
             content=content, 
             aikotoba=aikotoba, 
             is_public=is_public,
+            show_aikotoba=show_aikotoba, # 【追加】DBへ保存
             created_at=post_time 
         )
         
@@ -188,8 +193,6 @@ def write():
         return redirect(url_for('index'))
 
     return render_template('index.html')
-
-# app.py の write関数の下あたりに追加
 
 @app.route('/extinguish/<int:diary_id>', methods=['POST'])
 def extinguish(diary_id):
