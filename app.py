@@ -1,6 +1,7 @@
 import os
 import re
 import random
+import json  # ← これを追加！
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -197,6 +198,49 @@ def search():
     results = Diary.query.filter_by(aikotoba=query).order_by(Diary.created_at.desc()).all()
     # 検索結果もタイムライン（index.html）を使って表示
     return render_template('index.html', diaries=results, search_query=query)
+
+
+
+
+# --- 【一時的】データ用のルート ---
+@app.route('/secret_seeding_999')
+def secret_seeding():
+    # 1. JSONファイルを読み込む
+    try:
+        # app.py と同じ場所にある seeds.json を探す
+        with open('seeds.json', 'r', encoding='utf-8') as f:
+            diaries_data = json.load(f)
+    except FileNotFoundError:
+        return "エラー: seeds.json が見つかりません。サーバーにアップロードされていますか？"
+
+    # 2. データを投入
+    count = 0
+    for data in diaries_data:
+        # 日時の偽装ロジック
+        days_ago = random.randint(1, 7)
+        base_date = datetime.now() - timedelta(days=days_ago)
+
+        random_minutes = random.randint(0, 360) # 19:00〜25:00
+        base_time = base_date.replace(hour=19, minute=0, second=0, microsecond=0)
+        fake_created_at = base_time + timedelta(minutes=random_minutes)
+
+        new_diary = Diary(
+            content=data['content'],
+            aikotoba=data['aikotoba'],
+            is_public=data['is_public'],
+            show_aikotoba=data['show_aikotoba'],
+            created_at=fake_created_at
+        )
+        db.session.add(new_diary)
+        count += 1
+    
+    # 3. 保存
+    db.session.commit()
+    
+    return f"完了: {count} 件の種火をデータベースに灯しました。<br>このルートは後で削除してください。"
+
+# --- ここまで ---
+
 
 if __name__ == '__main__':
     app.run(debug=False)
