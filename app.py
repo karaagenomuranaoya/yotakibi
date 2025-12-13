@@ -82,7 +82,9 @@ def sleeping():
 
 @app.route('/manual')
 def manual():
-    return render_template('manual.html')
+    # URLパラメータ 'source' を取得。なければデフォルトで 'index' (タイムライン)
+    source = request.args.get('source', 'index')
+    return render_template('manual.html', source=source)
 
 # 【変更】トップページ（タイムライン）
 @app.route('/')

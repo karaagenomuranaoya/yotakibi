@@ -11,6 +11,47 @@
         あなたの言葉を薪として焚べると、<br>
         誰かが灯した火が見えるようになります。
     </p>
+    <div class="guide-nav">
+        <a href="{{ url_for('manual', source='write') }}" class="guide-link">
+            夜焚き火の歩き方
+        </a>
+    </div>
+
+    <style>
+        .guide-nav {
+            text-align: center;
+            /* 上の余白は維持しつつ、下の余白を 2.5rem -> 1rem に詰めました */
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .guide-link {
+            display: inline-block;
+            /* 文字色を明るい小麦色に変更 */
+            color: #F5DEB3;
+            /* 背景を少し明るい焦げ茶色に */
+            background: #2C241B;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            /* 枠線を最初からはっきり表示 */
+            border: 1px solid #8B4513;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            /* 影をつけて少し浮き上がらせる */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .guide-link:hover {
+            background: #3E3226;
+            border-color: #D4AF37;
+            /* ホバー時に枠が金に */
+            color: #FFF;
+            /* ホバー時に文字を白く */
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+            /* 少しだけふわっと浮く */
+        }
+    </style>
 
     <form action="{{ url_for('write') }}" method="POST" class="diary-form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
