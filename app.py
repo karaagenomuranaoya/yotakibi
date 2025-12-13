@@ -1,7 +1,7 @@
 import os
 import re
 import random # ランダム日時用
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta # Note: This app depends on the system timezone being set to Asia/Tokyo.
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
