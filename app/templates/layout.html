@@ -23,14 +23,19 @@
     <meta name="twitter:description" content="静かな夜を、ここで。">
 </head>
 
-<body>
+<!-- 【修正】管理者の場合、最初から hide-admin-ui クラスを付与して隠しておく -->
+
+<body class="{% if session.get('is_admin') %}hide-admin-ui{% endif %}">
+
     {% if session.get('is_admin') %}
     <!-- 管理者用ステルス機能 -->
+    <!-- 復活用の透明ホットスポット（左上隅） -->
     <div class="admin-ui-toggle-hotspot" onclick="toggleAdminUI()" title="ここを押すと管理画面が復活します"></div>
 
+    <!-- ここが表示されるのはホットスポットを押した後 -->
     <div class="admin-watch-badge">
         <span class="fire-icon">🔥</span> 火の番中
-        <span class="admin-hide-btn" onclick="toggleAdminUI()" title="撮影モード（管理UIを隠す）">👁️OFF</span>
+        <span class="admin-hide-btn" onclick="toggleAdminUI()" title="撮影モード（管理UIを隠す）">👁️隠す</span>
     </div>
 
     <style>
@@ -69,7 +74,6 @@
             font-size: 0.7rem;
             cursor: pointer;
             pointer-events: auto;
-            /* バッジ自体がpointer-events: noneの場合に備えて */
         }
 
         .admin-hide-btn:hover {
@@ -83,11 +87,10 @@
             top: 0;
             left: 0;
             width: 50px;
-            /* 押しやすいように少し広めに */
             height: 50px;
             z-index: 100000;
             cursor: pointer;
-            /* background-color: rgba(255, 0, 0, 0.2); デバッグ用：赤く表示 */
+            /* background-color: rgba(255, 0, 0, 0.2); デバッグ時はここを有効にして位置確認 */
         }
 
         @keyframes flicker {
@@ -158,6 +161,7 @@
         </footer>
     </div>
 
+    <!-- 以下、手帳機能など（変更なし） -->
     <div id="memo-toggle-btn" onclick="toggleMemo()">
         📔 手帳
     </div>
