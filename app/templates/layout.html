@@ -25,10 +25,16 @@
 
 <body>
     {% if session.get('is_admin') %}
+    <!-- 管理者用ステルス機能 -->
+    <div class="admin-ui-toggle-hotspot" onclick="toggleAdminUI()" title="ここを押すと管理画面が復活します"></div>
+
     <div class="admin-watch-badge">
-        <span class="fire-icon">🔥</span> 火の番をしよう
+        <span class="fire-icon">🔥</span> 火の番中
+        <span class="admin-hide-btn" onclick="toggleAdminUI()" title="撮影モード（管理UIを隠す）">👁️OFF</span>
     </div>
+
     <style>
+        /* 管理者バッジのスタイル */
         .admin-watch-badge {
             position: fixed;
             top: 20px;
@@ -43,14 +49,45 @@
             border-radius: 20px;
             letter-spacing: 0.1em;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-            pointer-events: none;
             backdrop-filter: blur(2px);
             animation: flicker 4s infinite alternate;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .fire-icon {
-            margin-right: 4px;
             filter: drop-shadow(0 0 4px #e65100);
+        }
+
+        /* 隠すボタン */
+        .admin-hide-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #5C4A3D;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            pointer-events: auto;
+            /* バッジ自体がpointer-events: noneの場合に備えて */
+        }
+
+        .admin-hide-btn:hover {
+            background: #5C4A3D;
+            color: #fff;
+        }
+
+        /* 復活用の透明ホットスポット（左上隅） */
+        .admin-ui-toggle-hotspot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 50px;
+            /* 押しやすいように少し広めに */
+            height: 50px;
+            z-index: 100000;
+            cursor: pointer;
+            /* background-color: rgba(255, 0, 0, 0.2); デバッグ用：赤く表示 */
         }
 
         @keyframes flicker {
@@ -73,8 +110,30 @@
                 padding: 6px 12px;
             }
         }
+
+        /* --- 撮影モード（UI非表示）時のスタイル --- */
+        body.hide-admin-ui .admin-watch-badge,
+        body.hide-admin-ui .admin-panel,
+        /* 日記ごとの管理パネル */
+        body.hide-admin-ui .admin-time-control,
+        /* 書き込み画面の時計 */
+        body.hide-admin-ui .pin-sidebar,
+        /* ピン留めサイドバー */
+        body.hide-admin-ui .pin-toggle
+
+        /* ピン留めトグル */
+            {
+            display: none !important;
+        }
     </style>
+
+    <script>
+        function toggleAdminUI() {
+            document.body.classList.toggle('hide-admin-ui');
+        }
+    </script>
     {% endif %}
+
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -90,16 +149,12 @@
 
         <footer>
             <small>&copy; Yotakibi. 静かな夜を。</small>
-
-            {# --- 追記：創作利用に関する免責 --- #}
             <div
                 style="margin-top: 1.5rem; font-size: 0.7rem; opacity: 0.6; line-height: 1.7; border-top: 1px solid rgba(92, 74, 61, 0.3); padding-top: 1rem;">
                 ※公開された火（投稿）は、個人を特定できない形で<br>
                 この焚き火場から生まれる物語やエッセイの<br>
                 モチーフとして使用させていただくことがあります。
             </div>
-            {# --- ここまで --- #}
-
         </footer>
     </div>
 
@@ -166,7 +221,6 @@
             opacity: 0;
             transform: translateY(20px);
             pointer-events: none;
-            /* クリック不可にする */
         }
 
         /* ヘッダー */
@@ -231,11 +285,9 @@
             opacity: 0.3;
         }
 
-        /* スマホ対応 */
         @media (max-width: 480px) {
             #memo-widget {
                 width: 90%;
-                /* 画面幅いっぱいにしない */
                 right: 5%;
                 bottom: 80px;
                 height: 300px;
@@ -254,7 +306,6 @@
         const memoArea = document.getElementById('memo-area');
         const statusSpan = document.getElementById('memo-status');
 
-        // ページ読み込み時に復元
         window.addEventListener('DOMContentLoaded', () => {
             const savedMemo = localStorage.getItem('yotakibi_handy_memo');
             if (savedMemo) {
@@ -262,7 +313,6 @@
             }
         });
 
-        // 入力時に保存
         memoArea.addEventListener('input', () => {
             localStorage.setItem('yotakibi_handy_memo', memoArea.value);
             statusSpan.textContent = '保存しました';
@@ -271,7 +321,6 @@
             }, 1000);
         });
 
-        // 手帳の中で種火を生成する機能
         function generateMemoKey() {
             const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             let result = "";
@@ -279,14 +328,11 @@
                 result += chars.charAt(Math.floor(Math.random() * chars.length));
             }
 
-            // カーソル位置に挿入
             const currentPos = memoArea.selectionStart;
             const text = memoArea.value;
 
             memoArea.value = text.substring(0, currentPos) + result + text.substring(memoArea.selectionEnd);
-
             localStorage.setItem('yotakibi_handy_memo', memoArea.value);
-
             memoArea.focus();
             memoArea.selectionEnd = currentPos + result.length;
         }

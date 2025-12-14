@@ -1,4 +1,3 @@
-import random
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from ..models import Diary
@@ -19,6 +18,27 @@ def write():
         is_aikotoba_public = True if request.form.get('is_aikotoba_public') else False
         allow_sns_share = True if request.form.get('allow_sns_share') else False
         allow_aikotoba_sns = True if request.form.get('allow_aikotoba_sns') else False
+
+        # --- セキュリティ情報取得（判定のために先に取得します） ---
+        user_ip = request.remote_addr
+        if request.headers.getlist("X-Forwarded-For"):
+            user_ip = request.headers.getlist("X-Forwarded-For")[0]
+            
+        ip_hash = get_ip_hash(user_ip)
+        user_agent = request.headers.get('User-Agent')
+
+        # --- 連投制限チェック (1時間に5回まで) ---
+        # 管理者は制限を受けない
+        if not session.get('is_admin'):
+            one_hour_ago = datetime.now() - timedelta(hours=1)
+            recent_count = Diary.query.filter(
+                Diary.ip_hash == ip_hash,
+                Diary.created_at >= one_hour_ago
+            ).count()
+
+            if recent_count >= 5:
+                flash('薪をくべるペースが速すぎます。火の勢いが強すぎるため、少し時間を空けてください。', 'error')
+                return render_template('write.html', kept_content=content)
 
         # 整合性チェック
         if not is_timeline_public:
@@ -48,30 +68,18 @@ def write():
             return render_template('write.html', kept_content=content)
 
         # 日時の決定
+        # 基本は現在時刻
         post_time = datetime.now()
+
+        # 管理者かつ日時指定がある場合のみ上書き
         if session.get('is_admin'):
             custom_time_str = request.form.get('custom_time')
             if custom_time_str:
                 try:
                     post_time = datetime.strptime(custom_time_str, '%Y-%m-%dT%H:%M')
                 except ValueError:
-                    post_time = datetime.now()
-            else:
-                days_ago = random.randint(0, 7)
-                base_date = datetime.now() - timedelta(days=days_ago)
-                base_time = base_date.replace(hour=19, minute=2, second=0, microsecond=0)
-                random_minutes = random.randint(0, 354)
-                post_time = base_time + timedelta(minutes=random_minutes)
-                if post_time > datetime.now():
-                    post_time = post_time - timedelta(days=1)
-
-        # セキュリティ情報
-        user_ip = request.remote_addr
-        if request.headers.getlist("X-Forwarded-For"):
-            user_ip = request.headers.getlist("X-Forwarded-For")[0]
-            
-        ip_hash = get_ip_hash(user_ip)
-        user_agent = request.headers.get('User-Agent')
+                    # パース失敗時は現在時刻のまま
+                    pass
 
         # 保存
         new_diary = Diary(
@@ -92,7 +100,6 @@ def write():
         session['has_posted'] = True
         session['my_aikotoba'] = aikotoba
         
-        # リダイレクト先を修正: 'index' -> 'main.index'
         return redirect(url_for('main.index'))
 
     return render_template('write.html')
