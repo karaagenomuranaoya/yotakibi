@@ -1,0 +1,298 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="fire-starter">
+    <h1 class="logo">夜焚き火
+        <span style="display: block; font-size: 0.5em; letter-spacing: 0.2em; opacity: 0.8; margin-top: 0.2rem;">
+            - Yotakibi -
+        </span>
+    </h1>
+    <p class="intro">
+        あなたの言葉を薪として焚べると、<br>
+        誰かが灯した火が見えるようになります。
+    </p>
+    <div class="guide-nav">
+        <a href="{{ url_for('main.manual', source='write') }}" class="guide-link">
+            夜焚き火の歩き方
+        </a>
+    </div>
+
+    <style>
+        .guide-nav {
+            text-align: center;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .guide-link {
+            display: inline-block;
+            color: #F5DEB3;
+            background: #2C241B;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            border: 1px solid #8B4513;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .guide-link:hover {
+            background: #3E3226;
+            border-color: #D4AF37;
+            color: #FFF;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <form action="{{ url_for('post.write') }}" method="POST" class="diary-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="form-group">
+            <label for="content">薪（今日の言葉）</label>
+            <textarea name="content" id="content" rows="6" placeholder="独りの夜も悪くない。"
+                required>{{ kept_content if kept_content else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="aikotoba">種火</label>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" name="aikotoba" id="aikotoba" placeholder="きょうのたねび" required autocomplete="off"
+                    style="flex: 1;">
+
+                <button type="button" onclick="generateRandomKey()"
+                    style="background: none; border: 1px solid #5C4A3D; color: #D4AF37; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; font-size: 0.9rem;">
+                    🎲 生成
+                </button>
+            </div>
+
+            <span class="hint">
+                種火（合言葉）を決めましょう。<br>
+                「ねこ」「空」のような簡単な言葉は、偶然誰かと重なることがあります。<br>
+                自分だけの秘密にしたい場合は、<strong>生成ボタン</strong>を押して、あなただけの特別な火を作ってください。
+            </span>
+
+            {# --- 変更箇所：重要な設定は外に出す --- #}
+            <div style="margin-top: 1.5rem; background: rgba(62, 50, 40, 0.3); padding: 1rem; border-radius: 4px;">
+                <label
+                    style="margin-bottom: 0.8rem; border-bottom: 1px dashed #5C4A3D; padding-bottom: 0.5rem; width: 100%; color: #D4AF37;">
+                    公開設定
+                </label>
+
+                {# 1. タイムライン掲載 #}
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_timeline_public" id="is_timeline_public" value="1" checked>
+                    <label for="is_timeline_public" class="checkbox-label">
+                        タイムラインに薪をくべる
+                    </label>
+                </div>
+                <p class="hint indent-hint">
+                    チェックを外すと、種火を知っている人の検索以外からは見えなくなります。
+                </p>
+
+                {# 2. 合言葉の公開 #}
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_aikotoba_public" id="is_aikotoba_public" value="1">
+                    <label for="is_aikotoba_public" class="checkbox-label">
+                        タイムラインに種火（合言葉）を表示する
+                    </label>
+                </div>
+                <p class="hint indent-hint">
+                    連載など、継続的に見てもらいたい時に便利です。
+                </p>
+
+                {# --- 変更箇所：SNS設定だけを折りたたむ --- #}
+                <div style="margin-top: 1.5rem;">
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            SNSシェアなどの設定
+                            <span style="font-size: 0.8em; opacity: 0.7; margin-left: 0.5em;">▼</span>
+                        </summary>
+
+                        <div class="settings-content">
+                            {# 3. SNS利用許可 #}
+                            <div class="checkbox-group">
+                                <input type="checkbox" name="allow_sns_share" id="allow_sns_share" value="1">
+                                <label for="allow_sns_share" class="checkbox-label">
+                                    公式SNS等での紹介・引用を許可する
+                                </label>
+                            </div>
+                            <p class="hint indent-hint">
+                                夜焚き火の公式アカウント等で、素敵な火として紹介させていただく場合があります。
+                            </p>
+
+                            {# 4. SNSでの合言葉公開 #}
+                            <div class="checkbox-group child-checkbox">
+                                <input type="checkbox" name="allow_aikotoba_sns" id="allow_aikotoba_sns" value="1"
+                                    disabled>
+                                <label for="allow_aikotoba_sns" class="checkbox-label">
+                                    その際、種火も併せて公開して良い
+                                </label>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <style>
+                .settings-details {
+                    /* 背景色は親要素でついているので、ここは枠線だけでも良いが、区別のために少し濃くする */
+                    background-color: rgba(44, 36, 27, 0.5);
+                    border: 1px solid #5C4A3D;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    transition: all 0.3s;
+                }
+
+                .settings-summary {
+                    padding: 0.8rem;
+                    cursor: pointer;
+                    color: #D4AF37;
+                    /* 琥珀色 */
+                    font-size: 0.9rem;
+                    list-style: none;
+                    outline: none;
+                }
+
+                .settings-summary::-webkit-details-marker {
+                    display: none;
+                }
+
+                .settings-content {
+                    padding: 0 1rem 1rem 1rem;
+                    border-top: 1px solid rgba(92, 74, 61, 0.3);
+                    animation: fadeIn 0.3s ease;
+                }
+
+                .indent-hint {
+                    margin-left: 1.8rem;
+                    margin-bottom: 1rem;
+                    font-size: 0.8rem;
+                    opacity: 0.7;
+                }
+
+                .child-checkbox {
+                    margin-left: 1.5rem;
+                    opacity: 0.6;
+                    transition: opacity 0.3s;
+                }
+
+                .child-checkbox.active {
+                    opacity: 1;
+                }
+            </style>
+            {# --- ここまで --- #}
+
+            {# --- 管理者用：時の調整パネル --- #}
+            {% if session.get('is_admin') %}
+            <div class="admin-time-control">
+                <label for="custom_time" class="time-label">🕰️ 時の調整（管理者のみ）</label>
+                <input type="datetime-local" name="custom_time" id="custom_time" class="time-input">
+                <span class="hint" style="margin-top: 0.2rem;">
+                    指定しない場合は、通常通りランダムな過去の夜になります。
+                </span>
+            </div>
+            <style>
+                .admin-time-control {
+                    margin-top: 1.5rem;
+                    padding: 1rem;
+                    border: 1px dashed #D4AF37;
+                    border-radius: 4px;
+                    background-color: rgba(62, 50, 40, 0.3);
+                }
+
+                .time-label {
+                    color: #D4AF37;
+                    font-size: 0.9rem;
+                    margin-bottom: 0.5rem;
+                    display: block;
+                }
+
+                .time-input {
+                    background-color: #2C241B;
+                    border: 1px solid #5C4A3D;
+                    color: #E0D6C8;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    font-family: inherit;
+                    width: 100%;
+                    color-scheme: dark;
+                }
+            </style>
+            {% endif %}
+
+        </div>
+
+        <button type="submit" class="btn-burn">火を焚べる</button>
+    </form>
+
+    <div class="write-back-nav">
+        <a href="{{ url_for('main.index') }}" class="write-back-link">
+            &lt; 焚き火に戻る
+        </a>
+    </div>
+
+    <style>
+        .write-back-nav {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .write-back-link {
+            display: inline-block;
+            color: #E0D6C8;
+            border: 1px solid #5C4A3D;
+            padding: 0.6rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .write-back-link:hover {
+            border-color: #D4AF37;
+            color: #D4AF37;
+            background: rgba(44, 36, 27, 0.8);
+        }
+    </style>
+</div>
+
+<script>
+    function generateRandomKey() {
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "";
+        for (let i = 0; i < 12; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const input = document.getElementById('aikotoba');
+        input.value = result;
+        input.style.backgroundColor = "#5C4A3D";
+        setTimeout(() => {
+            input.style.backgroundColor = "#3E3228";
+        }, 200);
+    }
+
+    // --- チェックボックスの連動制御 ---
+    document.addEventListener('DOMContentLoaded', function () {
+        const snsShare = document.getElementById('allow_sns_share');
+        const snsAikotoba = document.getElementById('allow_aikotoba_sns');
+        const snsAikotobaContainer = snsAikotoba.closest('.child-checkbox');
+
+        function updateState() {
+            if (snsShare.checked) {
+                snsAikotoba.disabled = false;
+                snsAikotobaContainer.classList.add('active');
+            } else {
+                snsAikotoba.checked = false;
+                snsAikotoba.disabled = true;
+                snsAikotobaContainer.classList.remove('active');
+            }
+        }
+
+        snsShare.addEventListener('change', updateState);
+        updateState();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-top: 15vh;">
+    <h1 class="logo">夜焚き火
+        <span style="display: block; font-size: 0.5em; letter-spacing: 0.2em; opacity: 0.8; margin-top: 0.2rem;">
+            - Yotakibi -
+        </span>
+    </h1>
+    {% if reason == 'midnight' %}
+    <h1 style="color: #5C4A3D; font-weight: normal; margin-bottom: 2rem;">
+        火は少しずつ消えていきます。
+    </h1>
+    <p style="line-height: 2; opacity: 0.8;">
+        夜焚き火は 19:00 〜 25:00の間にだけ現れる、<br>
+        静かな日記共有サービスです。<br>
+        <br>
+        現在はおやすみ中ですが、明日の夜になればまた明かりが灯ります。<br>
+        どなたでも無料で、匿名で参加できます。<br>
+        また明日お会いしましょう。
+    </p>
+    <div class="guide-nav">
+        <a href="{{ url_for('main.manual') }}" class="guide-link">
+            夜焚き火の歩き方
+        </a>
+    </div>
+
+    <style>
+        .guide-nav {
+            text-align: center;
+            margin: 0.5rem 0 3rem 0;
+            /* 余白を調整 */
+        }
+
+        .guide-link {
+            display: inline-block;
+            color: #F5DEB3;
+            /* 小麦色 */
+            background: #2C241B;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            border: 1px solid #8B4513;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .guide-link:hover {
+            background: #3E3226;
+            border-color: #D4AF37;
+            color: #FFF;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+    <a href="//af.moshimo.com/af/c/click?a_id=5295404&p_id=54&pc_id=54&pl_id=1253" rel="nofollow"
+        referrerpolicy="no-referrer-when-downgrade" attributionsrc><img
+            src="//image.moshimo.com/af-img/0032/000000001253.gif" width="120" height="120"
+            style="border:none;"></a><img src="//i.moshimo.com/af/i/impression?a_id=5295404&p_id=54&pc_id=54&pl_id=1253"
+        width="1" height="1" style="border:none;" loading="lazy">
+
+
+    {% else %}
+    <h1 style="color: #5C4A3D; font-weight: normal; margin-bottom: 2rem;">
+        準備にはもう少しかかりそうです。
+    </h1>
+    <p style="line-height: 2; opacity: 0.8;">
+        夜焚き火は 19:00 〜 25:00 の間にだけ現れる、<br>
+        静かな日記共有サービスです。<br>
+        <br>
+        現在はおやすみ中ですが、夜になればまた明かりが灯ります。<br>
+        どなたでも無料で、匿名で参加できます。<br>
+        また夜にお会いしましょう。
+    </p>
+    <div class="guide-nav">
+        <a href="{{ url_for('manual') }}" class="guide-link">
+            夜焚き火の歩き方
+        </a>
+    </div>
+
+    <style>
+        .guide-nav {
+            text-align: center;
+            margin: 0.5rem 0 3rem 0;
+            /* 余白を調整 */
+        }
+
+        .guide-link {
+            display: inline-block;
+            color: #F5DEB3;
+            /* 小麦色 */
+            background: #2C241B;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            border: 1px solid #8B4513;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .guide-link:hover {
+            background: #3E3226;
+            border-color: #D4AF37;
+            color: #FFF;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+    <a href="//af.moshimo.com/af/c/click?a_id=5295404&p_id=54&pc_id=54&pl_id=1253" rel="nofollow"
+        referrerpolicy="no-referrer-when-downgrade" attributionsrc><img
+            src="//image.moshimo.com/af-img/0032/000000001253.gif" width="120" height="120"
+            style="border:none;"></a><img src="//i.moshimo.com/af/i/impression?a_id=5295404&p_id=54&pc_id=54&pl_id=1253"
+        width="1" height="1" style="border:none;" loading="lazy">
+    {% endif %}
+
+</div>
+{% endblock %}
