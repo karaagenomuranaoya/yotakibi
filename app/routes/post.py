@@ -37,7 +37,7 @@ def write():
             ).count()
 
             if recent_count >= 5:
-                flash('薪をくべるペースが速すぎます。火の勢いが強すぎるため、少し時間を空けてください。', 'error')
+                flash('火事にならないように、薪は1時間に5本までとしています。焚き火をゆっくり眺めて、またあとで来てくださいね。', 'error')
                 return render_template('write.html', kept_content=content)
 
         # 整合性チェック

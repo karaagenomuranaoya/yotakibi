@@ -9,27 +9,44 @@ bp = Blueprint('system', __name__)
 def check_opening_hours():
     """
     全リクエストの前に実行される門番機能。
-    Blueprint内で before_app_request を使うと、アプリ全体に適用されます。
     """
-    # 管理者キーのチェック
-    input_key = request.args.get('admin_key')
     env_admin_key = os.environ.get('ADMIN_KEY', 'local_secret_open') 
+
+    # 1. 管理者ログインチェック（支配人モード）
+    # URLパラメータ: ?admin_key=...
+    # これが入ると、時間制限無視 ＆ 連投制限無視（最強）
+    input_key = request.args.get('admin_key')
     
     if input_key == env_admin_key:
         session['is_admin'] = True
+        # 管理者になったら、デバッグ訪問者フラグは消しておく（混乱防止）
+        session.pop('debug_visitor', None)
     
     if session.get('is_admin'):
         return
+
+    # 2. 【追加機能】バックステージパスチェック（関係者通行証モード）
+    # URLパラメータ: ?ticket=...
+    # これが入ると、時間制限のみ無視 ＆ 連投制限は有効（一般客扱い）
+    ticket = request.args.get('ticket')
+    if ticket == env_admin_key:
+        session['debug_visitor'] = True
+    
+    # パスを持っている一般客なら通す
+    if session.get('debug_visitor'):
+        return
+
+    # --- 以下、通常の一般客向けチェック ---
 
     # 静的ファイルはチェックしない
     if request.path.startswith('/static'):
         return
 
-    # ここが変更点: Blueprint化によりエンドポイント名にプレフィックスがつきます
-    # 'manual' -> 'main.manual' (次のステップで作ります)
+    # マニュアルはいつでも見れる
     if request.endpoint == 'main.manual':
         return
 
+    # 営業時間チェック
     now = datetime.now()
     hour = now.hour
     is_open = (hour >= 19) or (hour < 1)
