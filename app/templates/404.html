@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-top: 20vh;">
+    <h1 style="font-size: 3rem; color: #5C4A3D; margin-bottom: 1rem; opacity: 0.5;">404</h1>
+
+    <h2 style="font-size: 1.2rem; color: #D4AF37; margin-bottom: 2rem; font-weight: normal;">
+        薪が見つかりません。
+    </h2>
+
+    <p style="line-height: 2; opacity: 0.8; margin-bottom: 3rem;">
+        お探しのページは、すでに燃え尽きてしまったか、<br>
+        元から存在しない道のようです。<br>
+        <br>
+        よかったら焚き火の場所に戻りましょう。
+    </p>
+
+    <a href="{{ url_for('main.index') }}" class="btn-burn"
+        style="display: inline-block; width: auto; padding: 0.8rem 2rem; text-decoration: none;">
+        焚き火に戻る
+    </a>
+</div>
+{% endblock %}

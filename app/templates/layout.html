@@ -3,6 +3,11 @@
 
 <head>
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <!-- 【追加】スマホのホーム画面用アイコン (Web Clip Icon) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+    <!-- Androidの一部用（基本はapple-touch-iconが優先されますが念のため） -->
+    <link rel="icon" type="image/png" sizes="192x192"
+        href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>夜焚き火 - Yotakibi</title>

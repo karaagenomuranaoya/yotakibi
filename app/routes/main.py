@@ -94,3 +94,8 @@ def forget_aikotoba():
     session.pop('my_aikotoba', None)
     # トップページに戻る
     return redirect(url_for('main.index'))
+
+@bp.app_errorhandler(404)
+def page_not_found(e):
+    # 404ステータスコードと共にテンプレートを返す
+    return render_template('404.html'), 404
