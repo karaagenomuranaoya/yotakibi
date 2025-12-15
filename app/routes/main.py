@@ -34,27 +34,28 @@ def search():
     if session.get('is_admin'):
         query_obj = Diary.query
         
-        # 1. 範囲検索 (例: "100-150")
-        if '-' in query_text and query_text.replace('-', '').isdigit():
+        # 1. ID検索 (例: "#105") 【変更】#で始まる場合のみID検索
+        if query_text.startswith('#') and query_text[1:].isdigit():
+            d_id = int(query_text[1:]) # #を取り除いて数値化
+            query_obj = query_obj.filter(Diary.id == d_id)
+
+        # 2. 範囲検索 (例: "100-150")
+        elif '-' in query_text and query_text.replace('-', '').isdigit():
             try:
                 start, end = map(int, query_text.split('-'))
                 query_obj = query_obj.filter(Diary.id.between(start, end))
             except ValueError:
-                query_obj = query_obj.filter(Diary.content.contains(query_text))
-
-        # 2. ID単体検索 (例: "105")
-        elif query_text.isdigit():
-            d_id = int(query_text)
-            query_obj = query_obj.filter(
-                or_(
-                    Diary.id == d_id,
-                    Diary.content.contains(query_text)
+                # パース失敗時は通常検索へ
+                query_obj = query_obj.filter(
+                    or_(
+                        Diary.content.contains(query_text),
+                        Diary.aikotoba.contains(query_text)
+                    )
                 )
-            )
 
-        # 3. 本文検索 or 種火検索 (部分一致)
+        # 3. 通常検索 (数字だけでもここに来る)
         else:
-            # 【修正】種火も部分一致 (contains) に変更
+            # 本文検索 or 種火検索 (部分一致)
             query_obj = query_obj.filter(
                 or_(
                     Diary.content.contains(query_text),
@@ -72,7 +73,6 @@ def search():
         ).order_by(Diary.created_at.desc()).all()
     
     return render_template('index.html', diaries=results, search_query=query_text)
-
 @bp.route('/manual')
 def manual():
     source = request.args.get('source', 'index')
