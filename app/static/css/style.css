@@ -356,178 +356,69 @@ footer {
     opacity: 1;
 }
 
-/* static/css/style.css の末尾に追記 */
-
-/* --- 管理者用ピン留めサイドバー --- */
-.pin-sidebar {
-    position: fixed;
-    top: 0;
-    right: 0; /* ★変更: 右端に配置しつつ... */
-    width: 300px;
-    height: 100vh;
-    background-color: #2a221a;
-    border-left: 1px solid #D4AF37;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
-    z-index: 10000;
-    
-    /* ★変更: transformで画面外（右側）へ飛ばす */
-    transform: translateX(100%); 
-    
-    /* rightプロパティではなく、transformをアニメーションさせる */
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.3s;
-    visibility: hidden;
-    
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-}
-
-.pin-sidebar.active {
-    /* ★変更: transformをリセットして画面内に戻す */
-    transform: translateX(0);
-
-    visibility: visible;
-}
-
-/* 閉じるタブ */
-.pin-close-tab {
-    position: absolute;
-    top: 50%;
-    left: -28px;
-    transform: translateY(-50%);
-    background-color: #D4AF37;
-    color: #2C241B;
-    padding: 14px 6px 14px 8px;
-    border-radius: 4px 0 0 4px;
-    cursor: pointer;
-    box-shadow: -2px 2px 5px rgba(0,0,0,0.3);
-    font-size: 0.9rem;
-    font-weight: bold;
-    line-height: 1;
-    user-select: none;
-}
-
-/* 開くトグルボタン */
-.pin-toggle {
-    position: fixed;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    background-color: #D4AF37;
-    color: #2C241B;
-    padding: 10px 4px 10px 8px;
-    border-radius: 4px 0 0 4px;
-    cursor: pointer;
-    z-index: 10001;
-    box-shadow: -2px 2px 5px rgba(0,0,0,0.3);
-    font-size: 0.8rem;
-    transition: transform 0.3s, opacity 0.3s; /* ここもtransformに変更 */
-}
-
-.pin-sidebar.active + .pin-toggle {
-    /* ★変更: サイドバーと一緒になめらかに右へ消える */
-    transform: translate(100%, -50%);
-    opacity: 0;
-    pointer-events: none;
-}
-/* 内部コンテンツ */
-.pin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px dashed #5C4A3D;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-    color: #D4AF37;
-    height: 30px;
-}
-
-.pin-list {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #5C4A3D #2a221a;
-}
-
-.pin-list::-webkit-scrollbar {
-    width: 6px;
-}
-.pin-list::-webkit-scrollbar-track {
-    background: #2a221a;
-}
-.pin-list::-webkit-scrollbar-thumb {
-    background-color: #5C4A3D;
-    border-radius: 3px;
-}
-
-/* ピン留めカード */
-.pin-card {
-    background: rgba(0,0,0,0.2);
-    border: 1px solid #5C4A3D;
-    padding: 0.8rem;
-    margin-bottom: 0.8rem;
+/* --- 管理者パネル（タイムライン内） --- */
+.admin-panel {
+    margin-top: 1.5rem;
+    border: 1px solid #8B4513;
+    background-color: rgba(0, 0, 0, 0.3);
     border-radius: 4px;
     font-size: 0.85rem;
-    position: relative;
 }
 
-.pin-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 0.75rem;
-    color: #888;
-}
-
-.pin-aikotoba {
-    color: #D4AF37;
-    border: 1px solid #5C4A3D;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: rgba(92, 74, 61, 0.2);
+.admin-summary {
+    padding: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-}
-.pin-aikotoba:hover {
-    background: rgba(212, 175, 55, 0.2);
-    border-color: #D4AF37;
-}
-.pin-aikotoba:active {
-    transform: scale(0.95);
+    color: #ffb74d;
+    background-color: rgba(139, 69, 19, 0.2);
+    list-style: none;
 }
 
-.pin-card textarea {
+.admin-content {
+    padding: 0.8rem;
+}
+
+.admin-info {
+    font-family: monospace;
+    color: #aaa;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+}
+
+.admin-memo-form textarea {
     width: 100%;
-    background: transparent;
-    border: none;
-    color: #E0D6C8;
-    resize: vertical;
-    font-family: inherit;
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 0.5rem;
     font-size: 0.8rem;
-    margin-bottom: 0.5rem;
-    outline: none;
+    margin-bottom: 0.3rem;
 }
 
-.pin-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-}
-
-.pin-btn-mini {
+.btn-memo-save {
     background: #5C4A3D;
     color: #fff;
     border: none;
-    border-radius: 2px;
-    padding: 2px 6px;
-    font-size: 0.7rem;
+    padding: 2px 8px;
     cursor: pointer;
+    border-radius: 2px;
 }
-.pin-btn-mini:hover { background: #6d5848; }
 
-/* タイムライン側のボタン */
+.btn-extinguish {
+    background: none;
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.btn-extinguish:hover {
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+/* タイムライン側のピン留めボタン */
 .btn-pin {
     background: none;
     border: 1px solid #D4AF37;
@@ -541,4 +432,3 @@ footer {
     background: #D4AF37;
     color: #2C241B;
 }
-

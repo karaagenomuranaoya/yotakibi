@@ -1,0 +1,221 @@
+/* --- 管理者用ピン留めサイドバー（コンポーネント） --- */
+.pin-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 450px;
+    max-width: 90vw;
+    height: 100vh;
+    background-color: #2a221a;
+    border-left: 1px solid #D4AF37;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+    z-index: 10000;
+    
+    transform: translateX(100%); 
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.3s;
+    visibility: hidden;
+    
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.pin-sidebar.active {
+    transform: translateX(0);
+    visibility: visible;
+}
+
+/* 閉じるタブ */
+.pin-close-tab {
+    position: absolute;
+    top: 50%;
+    left: -28px;
+    transform: translateY(-50%);
+    background-color: #D4AF37;
+    color: #2C241B;
+    padding: 14px 6px 14px 8px;
+    border-radius: 4px 0 0 4px;
+    cursor: pointer;
+    box-shadow: -2px 2px 5px rgba(0,0,0,0.3);
+    font-size: 0.9rem;
+    font-weight: bold;
+    line-height: 1;
+    user-select: none;
+}
+
+/* 開くトグルボタン（画面右端に常駐） */
+.pin-toggle {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    background-color: #D4AF37;
+    color: #2C241B;
+    padding: 10px 4px 10px 8px;
+    border-radius: 4px 0 0 4px;
+    cursor: pointer;
+    z-index: 10001;
+    box-shadow: -2px 2px 5px rgba(0,0,0,0.3);
+    font-size: 0.8rem;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.pin-sidebar.active + .pin-toggle {
+    transform: translate(100%, -50%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ヘッダー */
+.pin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #5C4A3D;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    color: #D4AF37;
+    height: 30px;
+    font-weight: bold;
+}
+
+/* リストエリア */
+.pin-list {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #5C4A3D #2a221a;
+    padding-right: 5px;
+}
+
+/* 空のメッセージ */
+.pin-empty-msg {
+    padding: 2rem 1rem;
+    text-align: center;
+    opacity: 0.5;
+    font-size: 0.8rem;
+}
+
+/* --- カードデザイン --- */
+.pin-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid #5C4A3D;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* 1行目：リンク類 */
+.pin-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(92, 74, 61, 0.5);
+    padding-bottom: 0.5rem;
+}
+
+.pin-id-link {
+    color: #888;
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 0.9rem;
+    border-bottom: 1px dotted #555;
+}
+.pin-id-link:hover { color: #D4AF37; border-color: #D4AF37; }
+
+.pin-aikotoba-btn {
+    text-decoration: none;
+    background: rgba(92, 74, 61, 0.3);
+    border: 1px solid #5C4A3D;
+    color: #D4AF37;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    display: inline-block;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pin-aikotoba-btn:hover {
+    background: #D4AF37;
+    color: #2C241B;
+}
+
+/* 2行目：バッジ */
+.pin-badges-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    font-size: 0.75rem;
+}
+
+.pin-badge {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #aaa;
+}
+.pin-badge.active {
+    color: #a5d6a7; /* 薄い緑 */
+    background: rgba(165, 214, 167, 0.1);
+}
+.pin-badge.inactive {
+    color: #ef9a9a; /* 薄い赤 */
+    background: rgba(239, 154, 154, 0.1);
+}
+
+/* 3行目：テキスト */
+.pin-card textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #443322;
+    color: #E0D6C8;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    border-radius: 2px;
+    outline: none;
+    min-height: 60px;
+}
+.pin-card textarea:focus { border-color: #D4AF37; }
+
+/* 4行目：アクション */
+.pin-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.pin-btn-action {
+    background: #3E3228;
+    border: 1px solid #5C4A3D;
+    color: #ccc;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+}
+.pin-btn-action:hover {
+    background: #5C4A3D;
+    color: #fff;
+}
+.pin-btn-delete {
+    background: rgba(139, 58, 58, 0.2);
+    border-color: #8b3a3a;
+    color: #ffcccc;
+}
+.pin-btn-delete:hover {
+    background: #8b3a3a;
+}

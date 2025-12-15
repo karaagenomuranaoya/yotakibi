@@ -1,0 +1,25 @@
+<!-- 種火手帳 コンポーネント -->
+
+<!-- 専用CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/handy_memo.css') }}">
+
+<!-- トグルボタン -->
+<div id="memo-toggle-btn" onclick="toggleMemo()">
+    📔 手帳
+</div>
+
+<!-- ウィジェット本体 -->
+<div id="memo-widget" class="closed">
+    <div class="memo-header">
+        <span>種火手帳</span>
+        <span class="close-btn" onclick="toggleMemo()">×</span>
+    </div>
+    <div class="memo-tools">
+        <button type="button" onclick="generateMemoKey()" class="memo-tool-btn">🎲 種火生成</button>
+        <span id="memo-status" style="font-size: 0.7rem; opacity: 0.7;">自動保存中</span>
+    </div>
+    <textarea id="memo-area" placeholder="ここに種火や下書きをメモできます。ページを移動しても消えません。"></textarea>
+</div>
+
+<!-- 専用JS -->
+<script src="{{ url_for('static', filename='js/handy_memo.js') }}"></script>

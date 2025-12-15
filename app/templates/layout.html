@@ -3,14 +3,13 @@
 
 <head>
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <!-- 【追加】スマホのホーム画面用アイコン (Web Clip Icon) -->
+    <!-- スマホホーム画面用アイコン -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
-    <!-- Androidの一部用（基本はapple-touch-iconが優先されますが念のため） -->
-    <link rel="icon" type="image/png" sizes="192x192"
-        href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>夜焚き火 - Yotakibi</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;500&display=swap" rel="stylesheet">
@@ -28,23 +27,17 @@
     <meta name="twitter:description" content="静かな夜を、ここで。">
 </head>
 
-<!-- 【修正】管理者の場合、最初から hide-admin-ui クラスを付与して隠しておく -->
-
 <body class="{% if session.get('is_admin') %}hide-admin-ui{% endif %}">
 
     {% if session.get('is_admin') %}
     <!-- 管理者用ステルス機能 -->
-    <!-- 復活用の透明ホットスポット（左上隅） -->
     <div class="admin-ui-toggle-hotspot" onclick="toggleAdminUI()" title="ここを押すと管理画面が復活します"></div>
-
-    <!-- ここが表示されるのはホットスポットを押した後 -->
     <div class="admin-watch-badge">
         <span class="fire-icon">🔥</span> 火の番をしています
         <span class="admin-hide-btn" onclick="toggleAdminUI()" title="撮影モード（管理UIを隠す）">👁️隠す</span>
     </div>
 
     <style>
-        /* 管理者バッジのスタイル */
         .admin-watch-badge {
             position: fixed;
             top: 20px;
@@ -70,7 +63,6 @@
             filter: drop-shadow(0 0 4px #e65100);
         }
 
-        /* 隠すボタン */
         .admin-hide-btn {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid #5C4A3D;
@@ -86,7 +78,6 @@
             color: #fff;
         }
 
-        /* 復活用の透明ホットスポット（左上隅） */
         .admin-ui-toggle-hotspot {
             position: fixed;
             top: 0;
@@ -95,7 +86,6 @@
             height: 50px;
             z-index: 100000;
             cursor: pointer;
-            /* background-color: rgba(255, 0, 0, 0.2); デバッグ時はここを有効にして位置確認 */
         }
 
         @keyframes flicker {
@@ -119,28 +109,18 @@
             }
         }
 
-        /* --- 撮影モード（UI非表示）時のスタイル --- */
+        /* ステルスモード時の非表示設定 */
         body.hide-admin-ui .admin-watch-badge,
         body.hide-admin-ui .admin-panel,
-        /* 日記ごとの管理パネル */
         body.hide-admin-ui .admin-time-control,
-        /* 書き込み画面の時計 */
         body.hide-admin-ui .pin-sidebar,
-        /* ピン留めサイドバー */
         body.hide-admin-ui .pin-toggle,
-        /* ピン留めトグル */
-        body.hide-admin-ui .admin-search-hint
-
-        /* 【追加】検索ヒント */
-            {
+        body.hide-admin-ui .admin-search-hint {
             display: none !important;
         }
     </style>
-
     <script>
-        function toggleAdminUI() {
-            document.body.classList.toggle('hide-admin-ui');
-        }
+        function toggleAdminUI() { document.body.classList.toggle('hide-admin-ui'); }
     </script>
     {% endif %}
 
@@ -159,197 +139,17 @@
 
         <footer>
             <small>&copy; Yotakibi. 静かな夜を。</small>
-
             <div style="margin-top: 1rem; font-size: 0.8rem;">
                 <a href="{{ url_for('main.manual') }}"
                     style="color: #999; text-decoration: none; margin-right: 1rem;">歩き方</a>
                 <a href="{{ url_for('main.rules') }}" style="color: #999; text-decoration: none;">利用規約・通報</a>
             </div>
-
-            <!-- もし以前追加した長文の免責テキストがここにあれば、削除してスッキリさせましょう -->
         </footer>
     </div>
 
-    <!-- 以下、手帳機能など（変更なし） -->
-    <div id="memo-toggle-btn" onclick="toggleMemo()">
-        📔 手帳
-    </div>
+    <!-- コンポーネント：種火手帳 -->
+    {% include 'components/handy_memo.html' %}
 
-    <div id="memo-widget" class="closed">
-        <div class="memo-header">
-            <span>種火手帳</span>
-            <span class="close-btn" onclick="toggleMemo()">×</span>
-        </div>
-        <div class="memo-tools">
-            <button type="button" onclick="generateMemoKey()" class="memo-tool-btn">🎲 種火生成</button>
-            <span id="memo-status" style="font-size: 0.7rem; opacity: 0.7;">自動保存中</span>
-        </div>
-        <textarea id="memo-area" placeholder="ここに種火や下書きをメモできます。ページを移動しても消えません。"></textarea>
-    </div>
-
-    <style>
-        /* 右下のトグルボタン */
-        #memo-toggle-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #5C4A3D;
-            color: #E0D6C8;
-            padding: 12px 18px;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            font-size: 0.9rem;
-            z-index: 9999;
-            transition: transform 0.2s, background-color 0.2s;
-            border: 1px solid #8B4513;
-        }
-
-        #memo-toggle-btn:hover {
-            transform: scale(1.05);
-            background-color: #6d5848;
-        }
-
-        /* 手帳本体 */
-        #memo-widget {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 300px;
-            height: 400px;
-            background-color: #2C241B;
-            border: 1px solid #D4AF37;
-            border-radius: 8px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            z-index: 9999;
-            transition: opacity 0.3s, transform 0.3s;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* 閉じている時の状態 */
-        #memo-widget.closed {
-            opacity: 0;
-            transform: translateY(20px);
-            pointer-events: none;
-        }
-
-        /* ヘッダー */
-        .memo-header {
-            background-color: #3E3228;
-            padding: 8px 12px;
-            border-bottom: 1px solid #5C4A3D;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #D4AF37;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .close-btn {
-            cursor: pointer;
-            font-size: 1.2rem;
-            line-height: 1;
-        }
-
-        /* ツールバー */
-        .memo-tools {
-            padding: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #2a221a;
-        }
-
-        .memo-tool-btn {
-            background: none;
-            border: 1px solid #5C4A3D;
-            color: #E0D6C8;
-            font-size: 0.8rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .memo-tool-btn:hover {
-            background-color: #3E3228;
-        }
-
-        /* テキストエリア */
-        #memo-area {
-            flex: 1;
-            width: 100%;
-            background-color: #2C241B;
-            color: #E0D6C8;
-            border: none;
-            padding: 10px;
-            resize: none;
-            outline: none;
-            font-family: inherit;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            border-radius: 0 0 8px 8px;
-        }
-
-        #memo-area::placeholder {
-            opacity: 0.3;
-        }
-
-        @media (max-width: 480px) {
-            #memo-widget {
-                width: 90%;
-                right: 5%;
-                bottom: 80px;
-                height: 300px;
-            }
-        }
-    </style>
-
-    <script>
-        // 手帳の開閉
-        function toggleMemo() {
-            const widget = document.getElementById('memo-widget');
-            widget.classList.toggle('closed');
-        }
-
-        // --- 手帳の自動保存ロジック ---
-        const memoArea = document.getElementById('memo-area');
-        const statusSpan = document.getElementById('memo-status');
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedMemo = localStorage.getItem('yotakibi_handy_memo');
-            if (savedMemo) {
-                memoArea.value = savedMemo;
-            }
-        });
-
-        memoArea.addEventListener('input', () => {
-            localStorage.setItem('yotakibi_handy_memo', memoArea.value);
-            statusSpan.textContent = '保存しました';
-            setTimeout(() => {
-                statusSpan.textContent = '自動保存中';
-            }, 1000);
-        });
-
-        function generateMemoKey() {
-            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            let result = "";
-            for (let i = 0; i < 12; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-
-            const currentPos = memoArea.selectionStart;
-            const text = memoArea.value;
-
-            memoArea.value = text.substring(0, currentPos) + result + text.substring(memoArea.selectionEnd);
-            localStorage.setItem('yotakibi_handy_memo', memoArea.value);
-            memoArea.focus();
-            memoArea.selectionEnd = currentPos + result.length;
-        }
-    </script>
 </body>
 
 </html>

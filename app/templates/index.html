@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<!-- 管理者JS用の設定値渡し（検索URLなど） -->
+<div id="admin-js-config" data-search-url="{{ url_for('main.search') }}" style="display:none;"></div>
+
 <div class="timeline-container">
 
     {# --- ヘッダーエリア --- #}
@@ -74,7 +77,7 @@
             <button type="submit">火を辿る</button>
         </form>
 
-        {# 【追加】管理者用検索ヒント #}
+        {# 管理者用検索ヒント #}
         {% if session.get('is_admin') %}
         <div class="admin-search-hint" style="font-size: 0.75rem; color: #888; margin-top: 0.5rem; text-align: right;">
             <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">#数字:
@@ -89,12 +92,12 @@
 
     {% if session.get('my_aikotoba') and not search_query %}
     <div class="my-info">
-        {# 1. 右上の「消す」ボタン（物理的に離す） #}
+        {# 1. 右上の「消す」ボタン #}
         <a href="{{ url_for('main.forget_aikotoba') }}" class="btn-close-info" title="この表示を消す">×</a>
 
         <p style="margin-bottom: 0.2rem; font-size: 0.8rem; opacity: 0.6;">さっきの種火</p>
 
-        {# 2. 中央の種火（ぼかし・タップ領域を広く取る） #}
+        {# 2. 中央の種火 #}
         <div class="aikotoba-display-area"
             onclick="const el = this.querySelector('span'); el.style.filter = (el.style.filter === 'none' ? 'blur(6px)' : 'none');"
             title="タップして確認">
@@ -102,7 +105,7 @@
         </div>
         <div style="font-size: 0.7rem; opacity: 0.4; margin-bottom: 1.2rem;">(タップで見え隠れします)</div>
 
-        {# 3. 下部の「見に行く」ボタン（明確にボタン化） #}
+        {# 3. 下部の「見に行く」ボタン #}
         <a href="{{ url_for('main.search', q=session['my_aikotoba']) }}" class="btn-check-fire">
             この種火の火を見に行く ➡
         </a>
@@ -111,9 +114,7 @@
     <style>
         .my-info {
             position: relative;
-            /* バツボタンの配置基準 */
             background-color: rgba(212, 175, 55, 0.05);
-            /* ほんのり琥珀色 */
             padding: 1.5rem 1rem;
             border-radius: 4px;
             margin-bottom: 2rem;
@@ -121,13 +122,11 @@
             border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
-        /* 閉じるボタン（右上） */
         .btn-close-info {
             position: absolute;
             top: 0;
             right: 0;
             width: 44px;
-            /* スマホでも押しやすいサイズ */
             height: 44px;
             line-height: 44px;
             text-align: center;
@@ -142,23 +141,19 @@
         .btn-close-info:hover {
             opacity: 1;
             color: #ff6b6b;
-            /* ホバー時は赤く警告 */
             background-color: rgba(0, 0, 0, 0.1);
         }
 
-        /* 種火表示エリア */
         .aikotoba-display-area {
             font-size: 1.3rem;
             font-weight: bold;
             padding: 0.8rem;
-            /* タップしやすく */
             cursor: pointer;
             user-select: none;
             letter-spacing: 0.1em;
             color: #E0D6C8;
         }
 
-        /* 見に行くボタン */
         .btn-check-fire {
             display: inline-block;
             color: #D4AF37;
@@ -186,43 +181,39 @@
             <div class="diary-meta">
                 <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
 
-                <!-- 右側：種火とバッジを縦積みして右端に固定 -->
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-
-                    {# 種火表示ロジック #}
-                    {% if diary.is_aikotoba_public %}
-                    {# 通常の公開種火 #}
-                    <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
-                        <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
-                    </a>
-                    {% else %}
-                    {# 非公開の種火 #}
-                    {% if session.get('is_admin') %}
-                    {# 【修正】管理者なら、非公開でもリンクにして飛ばせるようにする #}
-                    <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
-                        <span class="diary-id" style="color: #ff6b6b; border-bottom: 1px dashed #ff6b6b;">
-                            🔒 {{ diary.aikotoba }}
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-family: monospace; opacity: 0.5; font-size: 0.9rem; letter-spacing: 0;">
+                            #{{ diary.id }}
                         </span>
-                    </a>
-                    {% else %}
-                    {# 一般ユーザーには秘密 #}
-                    <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
-                    {% endif %}
-                    {% endif %}
 
-                    {# タイムライン非公開マーク #}
+                        {% if diary.is_aikotoba_public %}
+                        <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
+                            <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
+                        </a>
+                        {% else %}
+                        {% if session.get('is_admin') %}
+                        <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
+                            <span class="diary-id" style="color: #ff6b6b; border-bottom: 1px dashed #ff6b6b;">
+                                🔒 {{ diary.aikotoba }}
+                            </span>
+                        </a>
+                        {% else %}
+                        <span class="diary-id" style="font-size: 0.85rem; opacity: 0.7;">(秘密の火)</span>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+
                     {% if session.get('is_admin') and not diary.is_timeline_public %}
                     <span
-                        style="font-size: 0.75rem; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 1px 6px; white-space: nowrap; margin-top: 2px;">
+                        style="font-size: 0.7rem; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 0 5px; white-space: nowrap;">
                         TL非公開
                     </span>
                     {% endif %}
-
                 </div>
             </div>
 
             {% set is_long = (diary.content|length > 140) or (diary.content.count('\n') > 5) %}
-
             <div class="diary-body {% if is_long %}collapsed{% endif %}" id="diary-body-{{ diary.id }}">{{ diary.content
                 }}</div>
 
@@ -238,7 +229,6 @@
                 <details>
                     <summary class="admin-summary">🔥 管理・メモ</summary>
                     <div class="admin-content">
-                        {# セキュリティ情報 #}
                         <div class="admin-info">
                             <small>UUID: {{ diary.uuid }}</small><br>
                             <small>IP Hash: <span title="{{ diary.ip_hash }}">{{ diary.ip_hash|truncate(10, True) if
@@ -250,7 +240,6 @@
                             </div>
                         </div>
 
-                        {# メモ更新フォーム #}
                         <form action="{{ url_for('post.update_memo', diary_id=diary.id) }}" method="POST"
                             class="admin-memo-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -259,21 +248,15 @@
                             <button type="submit" class="btn-memo-save">保存</button>
                         </form>
 
-                        {# キープボタン #}
-                        {% if diary.allow_sns_share and diary.is_timeline_public %}
-                        <button type="button"
-                            onclick="togglePin('{{ diary.id }}', `{{ diary.content|replace('`', '') }}`, '{{ diary.aikotoba }}', {{ 'true' if diary.allow_aikotoba_sns else 'false' }})"
-                            class="btn-pin" id="btn-pin-{{ diary.id }}">
+                        {# キープボタン：シンプル化！データ属性で渡す #}
+                        <button type="button" class="btn-pin pin-toggle-trigger" id="btn-pin-{{ diary.id }}"
+                            data-id="{{ diary.id }}" data-content="{{ diary.content }}"
+                            data-aikotoba="{{ diary.aikotoba }}" data-tl="{{ diary.is_timeline_public }}"
+                            data-tl-key="{{ diary.is_aikotoba_public }}" data-sns="{{ diary.allow_sns_share }}"
+                            data-sns-key="{{ diary.allow_aikotoba_sns }}">
                             📌 keep
                         </button>
-                        {% else %}
-                        <span style="font-size:0.8rem; opacity:0.3; padding: 4px; cursor: not-allowed;"
-                            title="この火はSNSへの持ち出しが許可されていません">
-                            🔒 keep不可
-                        </span>
-                        {% endif %}
 
-                        {# 消火ボタン #}
                         <form action="{{ url_for('post.extinguish', diary_id=diary.id) }}" method="POST"
                             style="text-align: right; margin-top: 0.5rem;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -285,69 +268,6 @@
                     </div>
                 </details>
             </div>
-
-            <style>
-                .admin-panel {
-                    margin-top: 1.5rem;
-                    border: 1px solid #8B4513;
-                    background-color: rgba(0, 0, 0, 0.3);
-                    border-radius: 4px;
-                    font-size: 0.85rem;
-                }
-
-                .admin-summary {
-                    padding: 0.5rem;
-                    cursor: pointer;
-                    color: #ffb74d;
-                    background-color: rgba(139, 69, 19, 0.2);
-                    list-style: none;
-                }
-
-                .admin-content {
-                    padding: 0.8rem;
-                }
-
-                .admin-info {
-                    font-family: monospace;
-                    color: #aaa;
-                    margin-bottom: 0.8rem;
-                    line-height: 1.4;
-                }
-
-                .admin-memo-form textarea {
-                    width: 100%;
-                    background: #222;
-                    color: #fff;
-                    border: 1px solid #555;
-                    padding: 0.5rem;
-                    font-size: 0.8rem;
-                    margin-bottom: 0.3rem;
-                }
-
-                .btn-memo-save {
-                    background: #5C4A3D;
-                    color: #fff;
-                    border: none;
-                    padding: 2px 8px;
-                    cursor: pointer;
-                    border-radius: 2px;
-                }
-
-                .btn-extinguish {
-                    background: none;
-                    border: 1px solid #ff6b6b;
-                    color: #ff6b6b;
-                    padding: 4px 12px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 0.8rem;
-                    transition: all 0.2s;
-                }
-
-                .btn-extinguish:hover {
-                    background-color: rgba(255, 107, 107, 0.1);
-                }
-            </style>
             {% endif %}
             {# --- 管理パネルここまで --- #}
 
@@ -427,7 +347,6 @@
 <script>
     function toggleDiary(id, btn) {
         const body = document.getElementById('diary-body-' + id);
-
         if (body.classList.contains('collapsed')) {
             body.classList.remove('collapsed');
             body.style.maxHeight = 'none';
@@ -444,141 +363,9 @@
     }
 </script>
 
+{# 管理者の場合のみ、サイドバーコンポーネントを読み込む #}
 {% if session.get('is_admin') %}
-<div id="pin-sidebar" class="pin-sidebar">
-    <div class="pin-close-tab" onclick="toggleSidebar()">▶</div>
-
-    <div class="pin-header">
-        <span>📌 ストック (SNS用)</span>
-    </div>
-
-    <div id="pin-list" class="pin-list">
-    </div>
-    <div class="pin-footer">
-        <button onclick="clearPins()"
-            style="font-size:0.8rem; background:none; border:none; color:#888; cursor:pointer;">全削除</button>
-    </div>
-</div>
-
-<div id="pin-toggle" class="pin-toggle" onclick="toggleSidebar()">◀</div>
-<script>
-    // --- JSロジック ---
-    document.addEventListener('DOMContentLoaded', () => {
-        renderPins();
-        updateButtons();
-    });
-
-    function toggleSidebar() {
-        const sidebar = document.getElementById('pin-sidebar');
-        sidebar.classList.toggle('active');
-    }
-
-    // ピン留め切り替え（isAikotobaOKを追加）
-    function togglePin(id, content, aikotoba, isAikotobaOK) {
-        let pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
-        const existingIndex = pins.findIndex(p => p.id === id);
-
-        if (existingIndex >= 0) {
-            pins.splice(existingIndex, 1);
-        } else {
-            pins.push({ id, content, aikotoba, isAikotobaOK, added_at: new Date().toISOString() });
-            document.getElementById('pin-sidebar').classList.add('active');
-        }
-
-        localStorage.setItem('yotakibi_pins', JSON.stringify(pins));
-        renderPins();
-        updateButtons();
-    }
-
-    // サイドバーの描画
-    function renderPins() {
-        const pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
-        const listEl = document.getElementById('pin-list');
-        listEl.innerHTML = '';
-
-        if (pins.length === 0) {
-            listEl.innerHTML = '<div style="padding:1rem; text-align:center; opacity:0.5; font-size:0.8rem;">まだストックはありません</div>';
-            return;
-        }
-
-        pins.forEach(pin => {
-            const div = document.createElement('div');
-            div.className = 'pin-card';
-
-            // 種火公開OKなら表示、NGなら隠す
-            let aikotobaHtml = '';
-            if (pin.isAikotobaOK) {
-                aikotobaHtml = `
-                    <div class="pin-aikotoba" onclick="copyString('${pin.aikotoba}', this)" title="タップで種火をコピー">
-                        🔥 ${pin.aikotoba}
-                    </div>`;
-            } else {
-                aikotobaHtml = `
-                    <div style="font-size:0.7rem; color:#888; border:1px dashed #555; padding:2px 6px; border-radius:4px;">
-                        🔒 種火非公開
-                    </div>`;
-            }
-
-            div.innerHTML = `
-                <div class="pin-meta">
-                    <span class="pin-id">#${pin.id}</span>
-                    ${aikotobaHtml}
-                </div>
-                <textarea rows="4" readonly onclick="this.select()">${pin.content}</textarea>
-                <div class="pin-actions">
-                    <button class="pin-btn-mini" onclick="copyText(this)">本文Copy</button>
-                    <button class="pin-btn-mini" style="background:#8b3a3a;" onclick="togglePin('${pin.id}')">削除</button>
-                </div>
-            `;
-            listEl.appendChild(div);
-        });
-    }
-
-    function updateButtons() {
-        const pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
-        document.querySelectorAll('.btn-pin').forEach(btn => {
-            btn.classList.remove('pinned');
-            btn.textContent = '📌 keep';
-        });
-
-        pins.forEach(pin => {
-            const btn = document.getElementById('btn-pin-' + pin.id);
-            if (btn) {
-                btn.classList.add('pinned');
-                btn.textContent = '✅ in stock';
-            }
-        });
-    }
-
-    function clearPins() {
-        if (confirm('ストックを全て空にしますか？')) {
-            localStorage.removeItem('yotakibi_pins');
-            renderPins();
-            updateButtons();
-        }
-    }
-
-    function copyText(btn) {
-        const textarea = btn.parentElement.previousElementSibling;
-        textarea.select();
-        document.execCommand('copy');
-        const original = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = original, 1000);
-    }
-
-    function copyString(text, element) {
-        navigator.clipboard.writeText(text).then(() => {
-            const original = element.innerHTML;
-            element.innerHTML = '✨ Copied!';
-            element.style.borderColor = '#fff';
-            setTimeout(() => {
-                element.innerHTML = original;
-                element.style.borderColor = '#5C4A3D';
-            }, 1000);
-        });
-    }
-</script>
+{% include 'components/admin_sidebar.html' %}
 {% endif %}
 
 {% endblock %}
