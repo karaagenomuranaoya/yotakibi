@@ -73,7 +73,7 @@
                 自分だけの秘密にしたい場合は、<strong>生成ボタン</strong>を押して、あなただけの特別な火を作ってください。
             </span>
 
-            {# --- 変更箇所：重要な設定は外に出す --- #}
+            {# --- 公開設定エリア --- #}
             <div style="margin-top: 1.5rem; background: rgba(62, 50, 40, 0.3); padding: 1rem; border-radius: 4px;">
                 <label
                     style="margin-bottom: 0.8rem; border-bottom: 1px dashed #5C4A3D; padding-bottom: 0.5rem; width: 100%; color: #D4AF37;">
@@ -91,18 +91,19 @@
                     チェックを外すと、種火を知っている人の検索以外からは見えなくなります。
                 </p>
 
-                {# 2. 合言葉の公開 #}
-                <div class="checkbox-group">
+                {# 2. 合言葉の公開（タイムライン設定の子要素として扱う） #}
+                <!-- child-checkbox クラスを追加して、JSで制御しやすくします -->
+                <div class="checkbox-group child-checkbox" id="aikotoba_public_container">
                     <input type="checkbox" name="is_aikotoba_public" id="is_aikotoba_public" value="1">
                     <label for="is_aikotoba_public" class="checkbox-label">
                         タイムラインに種火（合言葉）を表示する
                     </label>
                 </div>
-                <p class="hint indent-hint">
+                <p class="hint indent-hint" id="aikotoba_public_hint" style="transition: opacity 0.3s;">
                     連載など、継続的に見てもらいたい時に便利です。
                 </p>
 
-                {# --- 変更箇所：SNS設定だけを折りたたむ --- #}
+                {# 3. SNS設定（変更なし） #}
                 <div style="margin-top: 1.5rem;">
                     <details class="settings-details">
                         <summary class="settings-summary">
@@ -111,7 +112,6 @@
                         </summary>
 
                         <div class="settings-content">
-                            {# 3. SNS利用許可 #}
                             <div class="checkbox-group">
                                 <input type="checkbox" name="allow_sns_share" id="allow_sns_share" value="1">
                                 <label for="allow_sns_share" class="checkbox-label">
@@ -122,7 +122,6 @@
                                 夜焚き火の公式アカウント等で、素敵な火として紹介させていただく場合があります。
                             </p>
 
-                            {# 4. SNSでの合言葉公開 #}
                             <div class="checkbox-group child-checkbox">
                                 <input type="checkbox" name="allow_aikotoba_sns" id="allow_aikotoba_sns" value="1"
                                     disabled>
@@ -137,7 +136,6 @@
 
             <style>
                 .settings-details {
-                    /* 背景色は親要素でついているので、ここは枠線だけでも良いが、区別のために少し濃くする */
                     background-color: rgba(44, 36, 27, 0.5);
                     border: 1px solid #5C4A3D;
                     border-radius: 4px;
@@ -149,7 +147,6 @@
                     padding: 0.8rem;
                     cursor: pointer;
                     color: #D4AF37;
-                    /* 琥珀色 */
                     font-size: 0.9rem;
                     list-style: none;
                     outline: none;
@@ -178,11 +175,11 @@
                     transition: opacity 0.3s;
                 }
 
+                /* アクティブ時のスタイル */
                 .child-checkbox.active {
                     opacity: 1;
                 }
             </style>
-            {# --- ここまで --- #}
 
             {# --- 管理者用：時の調整パネル --- #}
             {% if session.get('is_admin') %}
@@ -274,13 +271,13 @@
         }, 200);
     }
 
-    // --- チェックボックスの連動制御 ---
     document.addEventListener('DOMContentLoaded', function () {
+        // --- 1. SNS設定の連動制御 ---
         const snsShare = document.getElementById('allow_sns_share');
         const snsAikotoba = document.getElementById('allow_aikotoba_sns');
         const snsAikotobaContainer = snsAikotoba.closest('.child-checkbox');
 
-        function updateState() {
+        function updateSnsState() {
             if (snsShare.checked) {
                 snsAikotoba.disabled = false;
                 snsAikotobaContainer.classList.add('active');
@@ -290,9 +287,32 @@
                 snsAikotobaContainer.classList.remove('active');
             }
         }
+        snsShare.addEventListener('change', updateSnsState);
+        updateSnsState();
 
-        snsShare.addEventListener('change', updateState);
-        updateState();
+        // --- 2. タイムライン設定の連動制御（今回追加） ---
+        const tlPublic = document.getElementById('is_timeline_public');
+        const tlAikotoba = document.getElementById('is_aikotoba_public');
+        // 親のdiv（child-checkboxクラスをつけたところ）を取得
+        const tlAikotobaContainer = document.getElementById('aikotoba_public_container');
+        const tlAikotobaHint = document.getElementById('aikotoba_public_hint');
+
+        function updateTimelineState() {
+            if (tlPublic.checked) {
+                // タイムライン公開なら、種火公開も選べる
+                tlAikotoba.disabled = false;
+                tlAikotobaContainer.classList.add('active');
+                tlAikotobaHint.style.opacity = '0.7'; // ヒントも見せる
+            } else {
+                // タイムライン非公開なら、種火公開設定はオフ＆無効化
+                tlAikotoba.checked = false;
+                tlAikotoba.disabled = true;
+                tlAikotobaContainer.classList.remove('active'); // 薄くする
+                tlAikotobaHint.style.opacity = '0.3'; // ヒントも薄くする
+            }
+        }
+        tlPublic.addEventListener('change', updateTimelineState);
+        updateTimelineState(); // 初期実行
     });
 </script>
 {% endblock %}
