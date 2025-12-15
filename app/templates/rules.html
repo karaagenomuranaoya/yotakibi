@@ -1,0 +1,152 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="manual-container">
+    <a href="{{ url_for('main.index') }}" class="manual-close-btn" aria-label="戻る">×</a>
+
+    <h1 class="manual-title">夜焚き火のきまり</h1>
+
+    <div class="manual-section">
+        <p>
+            夜焚き火（以下、本サービス）は、誰もが安心して静かな夜を過ごせるよう、
+            以下のきまり（利用規約）を定めています。<br>
+            本サービスを利用することで、このきまりに同意したものとみなされます。
+        </p>
+    </div>
+
+    <div class="manual-section">
+        <h2>1. 免責事項</h2>
+        <ul>
+            <li>本サービスは、利用者が自らの責任において言葉（投稿）を焚べる場所です。投稿内容に関する一切の責任は、投稿者自身が負うものとします。</li>
+            <li>管理人は、投稿内容を24時間常時監視する義務を負いません。</li>
+            <li>本サービスの利用により生じたいかなる損害、トラブル、精神的苦痛についても、管理人は一切の責任を負いません。</li>
+            <li>本サービスは予告なく中断、停止、または終了する場合があります。</li>
+        </ul>
+    </div>
+
+    <div class="manual-section">
+        <h2>2. 禁止されていること</h2>
+        <p>以下の薪をくべることを固く禁じます。</p>
+        <ul>
+            <li>法令に違反する内容、犯罪を予告・助長する内容</li>
+            <li>特定の個人や団体を誹謗中傷する内容</li>
+            <li>個人情報（氏名、住所、連絡先など）を含む内容</li>
+            <li>過度に暴力的、性的な内容</li>
+            <li>その他、管理人が「夜の静寂を乱す」と判断した内容</li>
+        </ul>
+        <p>これらに該当する投稿は、予告なく削除（消火）し、悪質な場合はアクセス禁止措置をとることがあります。</p>
+    </div>
+
+    <div class="manual-section">
+        <h2>3. プライバシーと情報開示</h2>
+        <ul>
+            <li>本サービスは利用者の個人情報（メールアドレス等）を収集しません。</li>
+            <li>セキュリティ維持とスパム防止のため、アクセス元のIPアドレス等の情報を記録しています。</li>
+            <li><strong>【重要】</strong> 警察、裁判所などの公的機関から法令に基づく正式な照会を受けた場合、記録されたIPアドレス等の情報を開示することがあります。</li>
+        </ul>
+    </div>
+
+    <div class="manual-section">
+        <h2>4. 通報・お問い合わせ</h2>
+        <p>
+            「禁止事項に触れる投稿がある」「不具合を見つけた」など、<br>
+            管理人へのご連絡は以下の窓口（Googleフォーム）にて受け付けています。<br>
+            <span style="font-size: 0.85rem; opacity: 0.7;">※全てのお問い合わせへの返信はお約束できませんが、内容は必ず確認いたします。</span>
+        </p>
+
+        <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+            <a href="https://forms.gle/zFa4u6rRWZkae8pr6" target="_blank" class="report-btn">
+                📮 焚き火の管理人に手紙を送る
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* マニュアルと同じスタイルを流用しつつ、ボタンなどを追加 */
+    .manual-container {
+        position: relative;
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 1rem;
+        padding-top: 2rem;
+        line-height: 1.8;
+        color: #E0D6C8;
+    }
+
+    .manual-close-btn {
+        position: absolute;
+        top: -10px;
+        right: 0px;
+        font-size: 3rem;
+        color: #E0D6C8;
+        text-decoration: none;
+        line-height: 1;
+        transition: all 0.3s;
+        font-weight: 300;
+        padding: 10px;
+    }
+
+    .manual-close-btn:hover {
+        color: #D4AF37;
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        transform: scale(1.1);
+    }
+
+    .manual-title {
+        text-align: center;
+        color: #D4AF37;
+        margin-bottom: 3rem;
+        font-weight: normal;
+        border-bottom: 1px solid #5C4A3D;
+        padding-bottom: 1rem;
+        letter-spacing: 0.1em;
+    }
+
+    .manual-section {
+        margin-bottom: 3rem;
+    }
+
+    .manual-section h2 {
+        font-size: 1.1rem;
+        color: #D4AF37;
+        margin-bottom: 1rem;
+        border-left: 3px solid #8B4513;
+        padding-left: 0.8rem;
+    }
+
+    .manual-section ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .manual-section li {
+        margin-bottom: 0.8rem;
+        padding-left: 1rem;
+        border-left: 1px solid #5C4A3D;
+        color: #ccc;
+        font-size: 0.95rem;
+    }
+
+    /* 通報ボタン */
+    .report-btn {
+        display: inline-block;
+        background-color: #3E3228;
+        color: #E0D6C8;
+        padding: 1rem 2rem;
+        border-radius: 4px;
+        text-decoration: none;
+        border: 1px solid #5C4A3D;
+        transition: all 0.3s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .report-btn:hover {
+        background-color: #5C4A3D;
+        color: #fff;
+        border-color: #D4AF37;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

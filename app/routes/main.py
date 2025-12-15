@@ -11,11 +11,16 @@ def index():
     page = request.args.get('page', 1, type=int)
     per_page = 10 
     
-    # モデルのインポート元が変わっただけで、ロジックはそのままです
-    pagination = Diary.query.filter_by(
-        is_timeline_public=True,
-        is_hidden=False
-    ).order_by(Diary.created_at.desc()).paginate(
+    # クエリビルダーの開始
+    query = Diary.query.filter_by(is_hidden=False)
+
+    # 【修正】管理者でない場合のみ、「公開設定」のフィルターをかける
+    # つまり、管理者は「非公開（秘密の火）」もタイムラインで見えるようになる
+    if not session.get('is_admin'):
+        query = query.filter_by(is_timeline_public=True)
+    
+    # 作成日順に並べて取得
+    pagination = query.order_by(Diary.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False
     )
     
@@ -26,8 +31,12 @@ def index():
 def search():
     query = request.args.get('q')
     if not query:
-        # url_for('index') -> url_for('main.index')
         return redirect(url_for('main.index'))
+    
+    # 検索も同様。管理者は hidden 以外なら何でも引っかかるようにしても良いが、
+    # 基本的に合言葉検索はピンポイントなのでそのままでもOK。
+    # ここでは「管理者なら非公開設定でもヒットする」ようにしておきますか？
+    # いや、検索は「種火」を知っている前提なので、現状維持でOKです。
     
     results = Diary.query.filter_by(
         aikotoba=query,
@@ -36,25 +45,19 @@ def search():
     
     return render_template('index.html', diaries=results, search_query=query)
 
+# manualルートなどは省略（変更なし）
 @bp.route('/manual')
 def manual():
     source = request.args.get('source', 'index')
-    # テンプレートに渡すsource変数も、リンク先修正のために必要なら後で修正しますが、
-    # url_forが賢いので 'index' という文字列だけでも同じBlueprint内なら解決してくれることが多いです
-    # ただし念のため明示的な修正を推奨します(以下)
-
-    # 修正: Blueprintのエンドポイント名に変換する辞書
     endpoint_map = {
         'index': 'main.index',
         'write': 'post.write',
-        # 他に遷移元が増えたらここに追加
     }
-
-    # 辞書にあれば変換、なければトップページへ安全に倒す
     target_endpoint = endpoint_map.get(source, 'main.index')
-    
-    # テンプレートには変換後のエンドポイント名を渡すのではなく、
-    # テンプレート側で url_for(target_endpoint) できるように値を渡します
-    # ただし manual.html 側も修正が必要です。
-    # ここでは「テンプレート側で url_for を使う」前提で、エンドポイント文字列を渡します。
     return render_template('manual.html', source=target_endpoint)
+
+
+# rulesルート
+@bp.route('/rules')
+def rules():
+    return render_template('rules.html')

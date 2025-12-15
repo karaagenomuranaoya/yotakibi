@@ -90,12 +90,25 @@
             <div class="diary-meta">
                 <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
 
+                {# --- 【修正】種火の表示ロジック --- #}
                 {% if diary.is_aikotoba_public %}
                 <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
                     <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
                 </a>
                 {% else %}
+                {# 管理者なら非公開の種火も見せる #}
+                {% if session.get('is_admin') %}
+                <span class="diary-id" style="color: #ff6b6b; border-bottom: 1px dashed #ff6b6b;">🔒 {{ diary.aikotoba
+                    }}</span>
+                {% else %}
                 <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
+                {% endif %}
+                {% endif %}
+
+                {# --- 【修正】タイムライン非公開マーク --- #}
+                {% if session.get('is_admin') and not diary.is_timeline_public %}
+                <span
+                    style="font-size: 0.75rem; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 0 4px; margin-left: 8px;">TL非公開</span>
                 {% endif %}
             </div>
 
@@ -110,7 +123,7 @@
             </button>
             {% endif %}
 
-            {# --- 管理者用パネル（ここから追加） --- #}
+            {# --- 管理者用パネル --- #}
             {% if session.get('is_admin') %}
             <div class="admin-panel">
                 <details>
@@ -137,15 +150,14 @@
                             <button type="submit" class="btn-memo-save">保存</button>
                         </form>
 
-                        {# 条件：SNSシェア許可(allow_sns_share) かつ タイムライン公開(is_timeline_public) の場合のみボタンを表示 #}
+                        {# キープボタン #}
                         {% if diary.allow_sns_share and diary.is_timeline_public %}
-                        <button type="button" {# allow_aikotoba_sns (種火公開許可) も引数に追加しておきます #}
+                        <button type="button"
                             onclick="togglePin('{{ diary.id }}', `{{ diary.content|replace('`', '') }}`, '{{ diary.aikotoba }}', {{ 'true' if diary.allow_aikotoba_sns else 'false' }})"
                             class="btn-pin" id="btn-pin-{{ diary.id }}">
                             📌 keep
                         </button>
                         {% else %}
-                        {# SNS不可などの場合は、誤操作防止のためボタンを表示しない（あるいはDisabledなアイコンだけ置く） #}
                         <span style="font-size:0.8rem; opacity:0.3; padding: 4px; cursor: not-allowed;"
                             title="この火はSNSへの持ち出しが許可されていません">
                             🔒 keep不可
@@ -298,7 +310,7 @@
     <div class="back-link">
         {% if search_query %}
         <a href="{{ url_for('main.index') }}">全ての火に戻る</a>
-        <a href="{{ url_for('poost.write') }}">もう一度、薪をくべる</a>
+        <a href="{{ url_for('post.write') }}">もう一度、薪をくべる</a>
         {% endif %}
     </div>
 </div>
@@ -369,7 +381,7 @@
         updateButtons();
     }
 
-    // サイドバーの描画（種火の安全性考慮版）
+    // サイドバーの描画
     function renderPins() {
         const pins = JSON.parse(localStorage.getItem('yotakibi_pins') || '[]');
         const listEl = document.getElementById('pin-list');
