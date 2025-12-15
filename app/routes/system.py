@@ -10,29 +10,30 @@ def check_opening_hours():
     """
     全リクエストの前に実行される門番機能。
     """
+    # 【変更】キーをそれぞれ個別に取得する
     env_admin_key = os.environ.get('ADMIN_KEY', 'local_secret_open') 
+    env_ticket_key = os.environ.get('TICKET_KEY', 'local_secret_ticket') # デフォルト値も変えておく
 
     # 1. 管理者ログインチェック（支配人モード）
     input_key = request.args.get('admin_key')
     
-    if input_key == env_admin_key:
+    # input_key が存在し、かつ正しい ADMIN_KEY と一致する場合
+    if input_key and input_key == env_admin_key:
         session['is_admin'] = True
-        session.pop('debug_visitor', None) # デバッグ訪問者フラグは消す
-        # 【重要】キーがURLに残らないように、クエリパラメータを消したURLへ即リダイレクト
+        session.pop('debug_visitor', None) 
         return redirect(request.path)
     
-    # 既に管理者セッションを持っていれば通す
     if session.get('is_admin'):
         return
 
     # 2. バックステージパスチェック（関係者通行証モード）
     ticket = request.args.get('ticket')
-    if ticket == env_admin_key: # チケットキーも同じ環境変数を使っていますが、必要なら分けてください
+    
+    # ticket が存在し、かつ正しい TICKET_KEY と一致する場合
+    if ticket and ticket == env_ticket_key:
         session['debug_visitor'] = True
-        # こちらも証拠隠滅リダイレクト
         return redirect(request.path)
     
-    # パスを持っている一般客なら通す
     if session.get('debug_visitor'):
         return
 
@@ -42,8 +43,8 @@ def check_opening_hours():
     if request.path.startswith('/static'):
         return
 
-    # マニュアルはいつでも見れる
-    if request.endpoint == 'main.manual':
+    # マニュアルとルールはいつでも見れる
+    if request.endpoint in ['main.manual', 'main.rules']:
         return
 
     # 営業時間チェック
@@ -61,7 +62,6 @@ def check_opening_hours():
         else:
             reason = 'daytime'
         
-        # url_for も 'system.sleeping' を指定する必要があります
         return redirect(url_for('system.sleeping', reason=reason))
 
 @bp.route('/sleeping')
