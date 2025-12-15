@@ -73,14 +73,110 @@
             <input type="text" name="q" placeholder="種火..." value="{{ search_query if search_query else '' }}">
             <button type="submit">火を辿る</button>
         </form>
+
+        {# 【追加】管理者用検索ヒント #}
+        {% if session.get('is_admin') %}
+        <div class="admin-search-hint" style="font-size: 0.75rem; color: #888; margin-top: 0.5rem; text-align: right;">
+            <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">数字:
+                ID検索</span>
+            <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">xxx-yyy:
+                範囲検索</span>
+            <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">文字:
+                本文検索</span>
+        </div>
+        {% endif %}
     </header>
 
     {% if session.get('my_aikotoba') and not search_query %}
     <div class="my-info">
-        <p>あなたの種火 ： <strong>{{ session['my_aikotoba'] }}</strong></p>
-        <a href="{{ url_for('main.search', q=session['my_aikotoba']) }}" class="link-check">{{ session['my_aikotoba']
-            }}の火を見に行く</a>
+        {# 1. 右上の「消す」ボタン（物理的に離す） #}
+        <a href="{{ url_for('main.forget_aikotoba') }}" class="btn-close-info" title="この表示を消す">×</a>
+
+        <p style="margin-bottom: 0.2rem; font-size: 0.8rem; opacity: 0.6;">さっきの種火</p>
+
+        {# 2. 中央の種火（ぼかし・タップ領域を広く取る） #}
+        <div class="aikotoba-display-area"
+            onclick="const el = this.querySelector('span'); el.style.filter = (el.style.filter === 'none' ? 'blur(6px)' : 'none');"
+            title="タップして確認">
+            <span style="filter: blur(6px); transition: filter 0.3s;">{{ session['my_aikotoba'] }}</span>
+        </div>
+        <div style="font-size: 0.7rem; opacity: 0.4; margin-bottom: 1.2rem;">(タップで見え隠れします)</div>
+
+        {# 3. 下部の「見に行く」ボタン（明確にボタン化） #}
+        <a href="{{ url_for('main.search', q=session['my_aikotoba']) }}" class="btn-check-fire">
+            この種火の火を見に行く ➡
+        </a>
     </div>
+
+    <style>
+        .my-info {
+            position: relative;
+            /* バツボタンの配置基準 */
+            background-color: rgba(212, 175, 55, 0.05);
+            /* ほんのり琥珀色 */
+            padding: 1.5rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* 閉じるボタン（右上） */
+        .btn-close-info {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 44px;
+            /* スマホでも押しやすいサイズ */
+            height: 44px;
+            line-height: 44px;
+            text-align: center;
+            color: #888;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 300;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .btn-close-info:hover {
+            opacity: 1;
+            color: #ff6b6b;
+            /* ホバー時は赤く警告 */
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* 種火表示エリア */
+        .aikotoba-display-area {
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 0.8rem;
+            /* タップしやすく */
+            cursor: pointer;
+            user-select: none;
+            letter-spacing: 0.1em;
+            color: #E0D6C8;
+        }
+
+        /* 見に行くボタン */
+        .btn-check-fire {
+            display: inline-block;
+            color: #D4AF37;
+            text-decoration: none;
+            border: 1px solid #D4AF37;
+            padding: 0.6rem 1.8rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            background-color: rgba(44, 36, 27, 0.5);
+        }
+
+        .btn-check-fire:hover {
+            background-color: #D4AF37;
+            color: #2C241B;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+    </style>
     {% endif %}
 
     {# --- 日記リスト --- #}
@@ -90,26 +186,39 @@
             <div class="diary-meta">
                 <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
 
-                {# --- 【修正】種火の表示ロジック --- #}
-                {% if diary.is_aikotoba_public %}
-                <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
-                    <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
-                </a>
-                {% else %}
-                {# 管理者なら非公開の種火も見せる #}
-                {% if session.get('is_admin') %}
-                <span class="diary-id" style="color: #ff6b6b; border-bottom: 1px dashed #ff6b6b;">🔒 {{ diary.aikotoba
-                    }}</span>
-                {% else %}
-                <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
-                {% endif %}
-                {% endif %}
+                <!-- 右側：種火とバッジを縦積みして右端に固定 -->
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
 
-                {# --- 【修正】タイムライン非公開マーク --- #}
-                {% if session.get('is_admin') and not diary.is_timeline_public %}
-                <span
-                    style="font-size: 0.75rem; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 0 4px; margin-left: 8px;">TL非公開</span>
-                {% endif %}
+                    {# 種火表示ロジック #}
+                    {% if diary.is_aikotoba_public %}
+                    {# 通常の公開種火 #}
+                    <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
+                        <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
+                    </a>
+                    {% else %}
+                    {# 非公開の種火 #}
+                    {% if session.get('is_admin') %}
+                    {# 【修正】管理者なら、非公開でもリンクにして飛ばせるようにする #}
+                    <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
+                        <span class="diary-id" style="color: #ff6b6b; border-bottom: 1px dashed #ff6b6b;">
+                            🔒 {{ diary.aikotoba }}
+                        </span>
+                    </a>
+                    {% else %}
+                    {# 一般ユーザーには秘密 #}
+                    <span class="diary-id">#{{ diary.id }} (秘密の火)</span>
+                    {% endif %}
+                    {% endif %}
+
+                    {# タイムライン非公開マーク #}
+                    {% if session.get('is_admin') and not diary.is_timeline_public %}
+                    <span
+                        style="font-size: 0.75rem; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 1px 6px; white-space: nowrap; margin-top: 2px;">
+                        TL非公開
+                    </span>
+                    {% endif %}
+
+                </div>
             </div>
 
             {% set is_long = (diary.content|length > 140) or (diary.content.count('\n') > 5) %}
