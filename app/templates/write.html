@@ -105,7 +105,7 @@
                 </p>
 
                 {# 3. SNS設定（変更なし） #}
-                <div style="margin-top: 1.5rem;">
+                <div id="sns-settings-group" class="settings-details-group" style="margin-top: 1.5rem;">
                     <details class="settings-details">
                         <summary class="settings-summary">
                             SNSシェアなどの設定
@@ -179,6 +179,15 @@
                 /* アクティブ時のスタイル */
                 .child-checkbox.active {
                     opacity: 1;
+                }
+
+                /* child-checkboxのスタイルを流用し、SNS設定全体を無効化するスタイル */
+                .settings-details-group.disabled-group {
+                    opacity: 0.6;
+                    pointer-events: none;
+                    /* クリックや操作を無効化 */
+                    user-select: none;
+                    transition: opacity 0.3s;
                 }
             </style>
 
@@ -273,11 +282,18 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // --- 1. SNS設定の連動制御 ---
+        // --- 共通要素の取得 ---
+        const tlPublic = document.getElementById('is_timeline_public');
+        const tlAikotoba = document.getElementById('is_aikotoba_public');
+        const tlAikotobaContainer = document.getElementById('aikotoba_public_container');
+        const tlAikotobaHint = document.getElementById('aikotoba_public_hint');
+
+        const snsSettingsGroup = document.getElementById('sns-settings-group'); // ★SNS設定全体
         const snsShare = document.getElementById('allow_sns_share');
         const snsAikotoba = document.getElementById('allow_aikotoba_sns');
         const snsAikotobaContainer = snsAikotoba.closest('.child-checkbox');
 
+        // --- 1. SNS設定の連動制御（内側） ---
         function updateSnsState() {
             if (snsShare.checked) {
                 snsAikotoba.disabled = false;
@@ -291,26 +307,37 @@
         snsShare.addEventListener('change', updateSnsState);
         updateSnsState();
 
-        // --- 2. タイムライン設定の連動制御（今回追加） ---
-        const tlPublic = document.getElementById('is_timeline_public');
-        const tlAikotoba = document.getElementById('is_aikotoba_public');
-        // 親のdiv（child-checkboxクラスをつけたところ）を取得
-        const tlAikotobaContainer = document.getElementById('aikotoba_public_container');
-        const tlAikotobaHint = document.getElementById('aikotoba_public_hint');
-
+        // --- 2. タイムライン設定の連動制御（外側：今回修正） ---
         function updateTimelineState() {
             if (tlPublic.checked) {
-                // タイムライン公開なら、種火公開も選べる
+                // タイムライン公開がONの場合
+                // 1. 種火公開は有効化
                 tlAikotoba.disabled = false;
                 tlAikotobaContainer.classList.add('active');
-                tlAikotobaHint.style.opacity = '0.7'; // ヒントも見せる
+                tlAikotobaHint.style.opacity = '0.7';
+
+                // 2. SNS設定全体を有効化
+                snsSettingsGroup.classList.remove('disabled-group');
+                snsShare.disabled = false;
+
             } else {
-                // タイムライン非公開なら、種火公開設定はオフ＆無効化
+                // タイムライン公開がOFFの場合
+                // 1. 種火公開設定をオフ＆無効化
                 tlAikotoba.checked = false;
                 tlAikotoba.disabled = true;
-                tlAikotobaContainer.classList.remove('active'); // 薄くする
-                tlAikotobaHint.style.opacity = '0.3'; // ヒントも薄くする
+                tlAikotobaContainer.classList.remove('active');
+                tlAikotobaHint.style.opacity = '0.3';
+
+                // 2. SNS設定全体をオフ＆無効化（連鎖処理の準備）
+                snsSettingsGroup.classList.add('disabled-group');
+                snsShare.checked = false;
+                snsShare.disabled = true;
             }
+
+            // 3. SNS公開設定の子要素の状態（SNS種火公開）を再評価する
+            // これにより、tlPublicがOFFになった場合、snsShareがOFFになるため、
+            // 連鎖的にallow_aikotoba_snsもOFF/無効化されます。
+            updateSnsState();
         }
         tlPublic.addEventListener('change', updateTimelineState);
         updateTimelineState(); // 初期実行
