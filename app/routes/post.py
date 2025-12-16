@@ -12,12 +12,6 @@ def write():
     if request.method == 'POST':
         content = request.form.get('content')
         aikotoba = request.form.get('aikotoba')
-        
-        # フラグ取得
-        # is_timeline_public = True if request.form.get('is_timeline_public') else False
-        # is_aikotoba_public = True if request.form.get('is_aikotoba_public') else False
-        # allow_sns_share = True if request.form.get('allow_sns_share') else False
-        # allow_aikotoba_sns = True if request.form.get('allow_aikotoba_sns') else False
 
         # --- セキュリティ情報取得（判定のために先に取得します） ---
         user_ip = request.remote_addr
@@ -39,12 +33,6 @@ def write():
             if recent_count >= 5:
                 flash('火事にならないように、薪は1時間に5本までとしています。焚き火をゆっくり眺めて、またあとで来てくださいね。', 'error')
                 return render_template('write.html', kept_content=content)
-
-        # 整合性チェック
-        if not is_timeline_public:
-            is_aikotoba_public = False
-        if not allow_sns_share:
-            allow_aikotoba_sns = False
 
         # バリデーション
         if not content or not aikotoba:
