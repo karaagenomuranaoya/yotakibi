@@ -13,9 +13,6 @@ def index():
     per_page = 10 
     
     query = Diary.query.filter_by(is_hidden=False)
-
-    if not session.get('is_admin'):
-        query = query.filter_by(is_timeline_public=True)
     
     pagination = query.order_by(Diary.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False

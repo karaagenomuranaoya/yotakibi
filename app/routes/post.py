@@ -14,10 +14,10 @@ def write():
         aikotoba = request.form.get('aikotoba')
         
         # フラグ取得
-        is_timeline_public = True if request.form.get('is_timeline_public') else False
-        is_aikotoba_public = True if request.form.get('is_aikotoba_public') else False
-        allow_sns_share = True if request.form.get('allow_sns_share') else False
-        allow_aikotoba_sns = True if request.form.get('allow_aikotoba_sns') else False
+        # is_timeline_public = True if request.form.get('is_timeline_public') else False
+        # is_aikotoba_public = True if request.form.get('is_aikotoba_public') else False
+        # allow_sns_share = True if request.form.get('allow_sns_share') else False
+        # allow_aikotoba_sns = True if request.form.get('allow_aikotoba_sns') else False
 
         # --- セキュリティ情報取得（判定のために先に取得します） ---
         user_ip = request.remote_addr
@@ -85,13 +85,10 @@ def write():
         new_diary = Diary(
             content=content, 
             aikotoba=aikotoba, 
-            is_timeline_public=is_timeline_public,
-            is_aikotoba_public=is_aikotoba_public,
-            allow_sns_share=allow_sns_share,
-            allow_aikotoba_sns=allow_aikotoba_sns,
             created_at=post_time,
             ip_hash=ip_hash,
-            user_agent=user_agent
+            user_agent=user_agent,
+            is_hidden=False
         )
         
         db.session.add(new_diary)

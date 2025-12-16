@@ -1,14 +1,12 @@
 <!-- 管理者用サイドバー コンポーネント -->
-
-<!-- 専用CSSの読み込み -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_sidebar.css') }}">
 
-<!-- サイドバー本体 -->
 <div id="pin-sidebar" class="pin-sidebar">
     <div class="pin-close-tab" onclick="toggleSidebar()">▶</div>
 
     <div class="pin-header">
-        <span>📌 ストック (SNS用)</span>
+        <!-- 【変更】タイトルを変更 -->
+        <span>📌 監視・キープ</span>
     </div>
 
     <div id="pin-list" class="pin-list">
@@ -23,8 +21,6 @@
     </div>
 </div>
 
-<!-- 開くトグルボタン（画面右端） -->
 <div id="pin-toggle" class="pin-toggle" onclick="toggleSidebar()">◀</div>
 
-<!-- 専用JSの読み込み -->
 <script src="{{ url_for('static', filename='js/admin_sidebar.js') }}"></script>

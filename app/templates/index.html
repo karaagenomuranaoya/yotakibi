@@ -71,20 +71,15 @@
             {% endif %}
         </h2>
 
+        {% if session.get('is_admin') %}
         <form action="{{ url_for('main.search') }}" method="GET" class="search-form">
-            <input type="text" name="q" placeholder="種火..." value="{{ search_query if search_query else '' }}">
+            <input type="text" name="q" placeholder="[Admin] 種火/ID..."
+                value="{{ search_query if search_query else '' }}">
             <button type="submit">火を辿る</button>
         </form>
-
         {# 管理者用検索ヒント #}
-        {% if session.get('is_admin') %}
         <div class="admin-search-hint" style="font-size: 0.75rem; color: #888; margin-top: 0.5rem; text-align: right;">
-            <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">#数字:
-                ID検索</span>
-            <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">xxx-yyy:
-                範囲検索</span>
-            <span style="border: 1px solid #555; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">文字:
-                本文検索</span>
+            <span>#数字: ID | xxx-yyy: 範囲 | 文字: 本文</span>
         </div>
         {% endif %}
     </header>
@@ -105,6 +100,7 @@
         <div style="font-size: 0.7rem; opacity: 0.4; margin-bottom: 1.2rem;">(タップで見え隠れします)</div>
 
         {# 3. 下部の「見に行く」ボタン #}
+        {# 検索バーは消したが、この機能（自分の火を見る）は残す #}
         <a href="{{ url_for('main.search', q=session['my_aikotoba']) }}" class="btn-check-fire">
             この種火の火を見に行く ➡
         </a>
@@ -186,29 +182,15 @@
                             #{{ diary.id }}
                         </span>
 
-                        {% if diary.is_aikotoba_public %}
-                        <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
-                            <span class="diary-id public">種火: {{ diary.aikotoba }}</span>
-                        </a>
-                        {% else %}
+                        {# 【変更】種火表示のリンクを完全に削除 #}
+                        {# 管理者の場合のみ、監視用として小さく表示 #}
                         {% if session.get('is_admin') %}
-                        <a href="{{ url_for('main.search', q=diary.aikotoba) }}" style="text-decoration: none;">
-                            <span class="diary-id" style="color: #ff6b6b; border-bottom: 1px dashed #ff6b6b;">
-                                🔒 {{ diary.aikotoba }}
-                            </span>
-                        </a>
-                        {% else %}
-                        <span class="diary-id" style="font-size: 0.85rem; opacity: 0.7;">(秘密の火)</span>
+                        <span class="diary-id" style="color: #666; font-size: 0.8rem;">
+                            🔑 {{ diary.aikotoba }}
+                        </span>
                         {% endif %}
-                        {% endif %}
-                    </div>
 
-                    {% if session.get('is_admin') and not diary.is_timeline_public %}
-                    <span
-                        style="font-size: 0.7rem; color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 4px; padding: 0 5px; white-space: nowrap;">
-                        TL非公開
-                    </span>
-                    {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -233,10 +215,6 @@
                             <small>IP Hash: <span title="{{ diary.ip_hash }}">{{ diary.ip_hash|truncate(10, True) if
                                     diary.ip_hash else 'None' }}...</span></small><br>
                             <small>UA: {{ diary.user_agent|truncate(30, True) if diary.user_agent else 'None' }}</small>
-                            <div style="margin-top: 4px; border-top: 1px solid #555; padding-top: 4px;">
-                                <small>SNS許可: {{ '✅' if diary.allow_sns_share else '❌' }}</small> |
-                                <small>SNS種火: {{ '✅' if diary.allow_aikotoba_sns else '❌' }}</small>
-                            </div>
                         </div>
 
                         <form action="{{ url_for('post.update_memo', diary_id=diary.id) }}" method="POST"
@@ -250,20 +228,17 @@
                         {# キープボタン：シンプル化！データ属性で渡す #}
                         <button type="button" class="btn-pin pin-toggle-trigger" id="btn-pin-{{ diary.id }}"
                             data-id="{{ diary.id }}" data-content="{{ diary.content }}"
-                            data-aikotoba="{{ diary.aikotoba }}" data-tl="{{ diary.is_timeline_public }}"
-                            data-tl-key="{{ diary.is_aikotoba_public }}" data-sns="{{ diary.allow_sns_share }}"
-                            data-sns-key="{{ diary.allow_aikotoba_sns }}">
-                            📌 keep
-                        </button>
-
-                        <form action="{{ url_for('post.extinguish', diary_id=diary.id) }}" method="POST"
-                            style="text-align: right; margin-top: 0.5rem;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" onclick="return confirm('本当にこの火を消しますか？\n（管理者権限：非表示にします）')"
-                                class="btn-extinguish">
-                                🚫 消火（非表示）
+                            data-aikotoba="{{ diary.aikotoba }}" data-tl="{{ diary.is_timeline_public }}" 📌 keep
                             </button>
-                        </form>
+
+                            <form action="{{ url_for('post.extinguish', diary_id=diary.id) }}" method="POST"
+                                style="text-align: right; margin-top: 0.5rem;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" onclick="return confirm('本当にこの火を消しますか？\n（管理者権限：非表示にします）')"
+                                    class="btn-extinguish">
+                                    🚫 消火（非表示）
+                                </button>
+                            </form>
                     </div>
                 </details>
             </div>

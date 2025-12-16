@@ -15,10 +15,10 @@ class Diary(db.Model):
     aikotoba = db.Column(db.String(50), nullable=False)
 
     # --- 公開・利用設定 ---
-    is_timeline_public = db.Column(db.Boolean, default=False)
-    is_aikotoba_public = db.Column(db.Boolean, default=False)
-    allow_sns_share = db.Column(db.Boolean, default=False)
-    allow_aikotoba_sns = db.Column(db.Boolean, default=False)
+    # is_timeline_public = db.Column(db.Boolean, default=False)
+    # is_aikotoba_public = db.Column(db.Boolean, default=False)
+    # allow_sns_share = db.Column(db.Boolean, default=False)
+    # allow_aikotoba_sns = db.Column(db.Boolean, default=False)
 
     # --- 管理・モデレーション ---
     is_hidden = db.Column(db.Boolean, default=False)
