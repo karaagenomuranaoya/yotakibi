@@ -271,6 +271,179 @@
         {% endif %}
     </div>
 
+    {# --- 【修正版】過去の火を訪ねるセクション --- #}
+    <div class="recall-fire-section">
+        <details>
+            <summary class="recall-trigger">
+                <span class="key-icon">🗝</span> 過去の種火（合言葉）で火を訪ねる
+            </summary>
+
+            <div class="recall-content">
+                <p class="recall-desc">
+                    かつて灯した火の場所を覚えているなら、<br>
+                    その言葉（種火）を頼りに、もう一度訪ねてみましょう。
+                </p>
+                <form action="{{ url_for('main.search') }}" method="GET" class="recall-form">
+                    <input type="text" name="q" placeholder="種火を入力..." required autocomplete="off" class="recall-input">
+                    <button type="submit" class="recall-btn">火を辿る</button>
+                </form>
+            </div>
+        </details>
+    </div>
+
+    <style>
+        /* セクション全体 */
+        .recall-fire-section {
+            margin: 4rem auto 2rem;
+            /* 余白を広めに */
+            text-align: center;
+            max-width: 500px;
+        }
+
+        /* 1. 開くためのトリガー（リンク） */
+        .recall-trigger {
+            cursor: pointer;
+            color: #8B6B4E;
+            /* 枯れた木のような色 */
+            font-size: 0.95rem;
+            list-style: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            /* ホバー時の枠線用 */
+            opacity: 0.8;
+            letter-spacing: 0.05em;
+        }
+
+        /* detailsのデフォルトの▼を消す */
+        .recall-trigger::-webkit-details-marker {
+            display: none;
+        }
+
+        /* ホバー時の演出：ふわりと光る */
+        .recall-trigger:hover {
+            color: #D4AF37;
+            /* 金色 */
+            border-color: rgba(212, 175, 55, 0.3);
+            background-color: rgba(44, 36, 27, 0.5);
+            opacity: 1;
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* アイコンのアニメーション */
+        .recall-trigger:hover .key-icon {
+            transform: rotate(-15deg);
+        }
+
+        .key-icon {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        /* 開いている時は色を変えるだけにする */
+        details[open] .recall-trigger {
+            color: #D4AF37;
+            border-bottom: 1px solid transparent;
+            /* pointer-events: none; を削除 */
+        }
+
+        /* ついでに、開いている時はアイコンを回したままにする演出を追加 */
+        details[open] .recall-trigger .key-icon {
+            transform: rotate(-15deg);
+        }
+
+        /* 2. 中身のコンテナ */
+        .recall-content {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid #5C4A3D;
+            border-radius: 4px;
+            background: rgba(30, 24, 18, 0.6);
+            /* 背景を少し濃く */
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            /* 内側に影を落として「窪み」感を出す */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .recall-desc {
+            font-size: 0.8rem;
+            color: #a89f91;
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+
+        /* 3. フォーム周り */
+        .recall-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .recall-input {
+            flex: 1;
+            padding: 0.8rem;
+            background-color: #2a221a;
+            border: 1px solid #4a3b2a;
+            color: #D4AF37;
+            border-radius: 2px;
+            font-family: inherit;
+            letter-spacing: 0.05em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .recall-input:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.2);
+        }
+
+        .recall-input::placeholder {
+            color: #5C4A3D;
+            font-size: 0.85rem;
+        }
+
+        /* 4. 訪ねるボタン（ランタン風） */
+        .recall-btn {
+            background: linear-gradient(135deg, #5C4A3D, #3E3228);
+            color: #E0D6C8;
+            border: 1px solid #6d5848;
+            padding: 0.8rem 1.5rem;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .recall-btn:hover {
+            background: linear-gradient(135deg, #8B4513, #5C4A3D);
+            border-color: #D4AF37;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            /* ランタンのように光る */
+        }
+    </style>
+
     <style>
         .pagination {
             display: flex;
