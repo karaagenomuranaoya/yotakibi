@@ -4,6 +4,8 @@ from ..models import Diary
 from ..extensions import db
 from ..utils import get_ip_hash
 
+from ..ng_words import check_text_safety  # 【追加】
+
 # 'post' という名前のBlueprintを作成
 bp = Blueprint('post', __name__)
 
@@ -54,6 +56,20 @@ def write():
         if len(aikotoba) < 2:
             flash('種火が短すぎると、すぐに消えてしまいます（2文字以上）', 'error')
             return render_template('write.html', kept_content=content)
+        
+        # --- 【追加】NGワード・予約語チェック ---
+        # 1. 本文（薪）のチェック：共通NGのみ、予約語チェックは不要
+        is_safe_content, msg_content = check_text_safety(content, check_reserved=False, is_admin=session.get('is_admin'))
+        if not is_safe_content:
+            flash(msg_content, 'error')
+            return render_template('write.html', kept_content=content)
+
+        # 2. 種火（合言葉）のチェック：共通NG  予約語チェック(True)
+        is_safe_aikotoba, msg_aikotoba = check_text_safety(aikotoba, check_reserved=True, is_admin=session.get('is_admin'))
+        if not is_safe_aikotoba:
+            flash(msg_aikotoba, 'error')
+            return render_template('write.html', kept_content=content)
+        # ----------------------------------------
 
         # 日時の決定
         # 基本は現在時刻
