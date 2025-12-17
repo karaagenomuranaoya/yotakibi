@@ -24,7 +24,7 @@ jobs:
         run: |
           echo "Calling AI Fire Keeper..."
           # curlでPOSTリクエストを送る
-          curl -X POST "${APP_URL}/api/bot/ignite" \
+          # エラーの中身が見たいので --fail を削除し、詳細表示の -v を追加
+          curl -v -X POST "${APP_URL}/api/bot/ignite" \
                -H "X-Bot-Secret: ${BOT_SECRET}" \
-               -H "Content-Type: application/json" \
-               --fail
+               -H "Content-Type: application/json"
