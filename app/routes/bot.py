@@ -102,3 +102,48 @@ def ignite():
         # ここでRenderのログにエラーの正体を表示する
         print(f"!!! BOT ERROR !!!: {e}", flush=True)
         return jsonify({"error": str(e)}), 500
+    
+    
+# ↓↓↓ ここから追記 ↓↓↓
+
+@bp.route('/say', methods=['POST'])
+@csrf.exempt
+def say():
+    # 1. セキュリティチェック（igniteと同じ）
+    env_secret = os.environ.get('AI_BOT_SECRET')
+    req_secret = request.headers.get('X-Bot-Secret')
+
+    if not env_secret or req_secret != env_secret:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # 2. 送られてきたメッセージを受け取る
+    data = request.get_json()
+    content = data.get('content')
+    aikotoba = data.get('aikotoba', '管理人') # 指定がなければ「管理人」にする
+
+    if not content:
+        return jsonify({"error": "No content provided"}), 400
+
+    try:
+        # 3. DBにそのまま保存（AI生成はしない）
+        # IPハッシュはBot用の固定値
+        bot_ip_hash = get_ip_hash("SYSTEM_MESSAGE_BOT")
+        
+        new_diary = Diary(
+            content=content,
+            aikotoba=aikotoba,
+            ip_hash=bot_ip_hash,
+            user_agent="Yotakibi System/1.0",
+            is_hidden=False
+        )
+        
+        db.session.add(new_diary)
+        db.session.commit()
+        
+        print(f"!!! SYSTEM MSG SUCCESS !!!: Posted: {content}", flush=True)
+
+        return jsonify({"message": "Message posted successfully."})
+
+    except Exception as e:
+        print(f"!!! SYSTEM MSG ERROR !!!: {e}", flush=True)
+        return jsonify({"error": str(e)}), 500
