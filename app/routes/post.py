@@ -112,10 +112,19 @@ def extinguish(diary_id):
         return redirect(url_for('main.index'))
 
     diary = Diary.query.get_or_404(diary_id)
-    diary.is_hidden = True
+    
+    # 【変更】トグル機能にする（TrueならFalseへ、FalseならTrueへ）
+    # これにより、間違って消してももう一度ボタンを押せば復活できます
+    diary.is_hidden = not diary.is_hidden
     
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
-    auto_msg = f"[{timestamp}] 管理操作による消火（非表示）"
+    
+    if diary.is_hidden:
+        action_name = "消火（非表示）"
+        auto_msg = f"[{timestamp}] 管理操作による消火"
+    else:
+        action_name = "再点火（表示再開）"
+        auto_msg = f"[{timestamp}] 管理操作による再点火"
     
     if diary.admin_memo:
         diary.admin_memo += f"\n{auto_msg}"
@@ -124,8 +133,10 @@ def extinguish(diary_id):
         
     db.session.commit()
 
-    flash(f'種火 #{diary.id} をそっと消火（非表示）しました。', 'success')
-    return redirect(url_for('main.index'))
+    flash(f'種火 #{diary.id} を{action_name}しました。', 'success')
+    
+    # 【変更】直前のページ（検索画面など）に戻る。なければトップへ。
+    return redirect(request.referrer or url_for('main.index'))
 
 @bp.route('/memo/<int:diary_id>', methods=['POST'])
 def update_memo(diary_id):

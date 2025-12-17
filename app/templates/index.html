@@ -172,7 +172,16 @@
     {# --- 日記リスト --- #}
     <div class="diary-list">
         {% for diary in diaries %}
-        <div class="diary-card">
+
+        <div class="diary-card {% if diary.is_hidden %}is-hidden-fire{% endif %}">
+
+            <!-- 【変更2】削除済みの場合、管理者には一目でわかるバッジを表示 -->
+            {% if diary.is_hidden and session.get('is_admin') %}
+            <div
+                style="background:#ff6b6b; color:#fff; font-size:0.8rem; padding:2px 8px; border-radius:4px; display:inline-block; margin-bottom:0.5rem;">
+                🚫 消火済み（非表示中）
+            </div>
+            {% endif %}
             <div class="diary-meta">
                 <span class="diary-date">{{ diary.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
 
@@ -228,17 +237,25 @@
                         {# キープボタン：シンプル化！データ属性で渡す #}
                         <button type="button" class="btn-pin pin-toggle-trigger" id="btn-pin-{{ diary.id }}"
                             data-id="{{ diary.id }}" data-content="{{ diary.content }}"
-                            data-aikotoba="{{ diary.aikotoba }}" data-tl="{{ diary.is_timeline_public }}" 📌 keep
-                            </button>
+                            data-aikotoba="{{ diary.aikotoba }}" data-tl="{{ diary.is_timeline_public }}"> 📌 keep
+                        </button>
 
-                            <form action="{{ url_for('post.extinguish', diary_id=diary.id) }}" method="POST"
-                                style="text-align: right; margin-top: 0.5rem;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" onclick="return confirm('本当にこの火を消しますか？\n（管理者権限：非表示にします）')"
-                                    class="btn-extinguish">
-                                    🚫 消火（非表示）
-                                </button>
-                            </form>
+                        <form action="{{ url_for('post.extinguish', diary_id=diary.id) }}" method="POST"
+                            style="text-align: right; margin-top: 0.5rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <!-- 【変更】状態によってボタンのラベルと色を変える -->
+                            {% if diary.is_hidden %}
+                            <button type="submit" class="btn-extinguish" style="border-color: #4CAF50; color: #4CAF50;">
+                                🔥 再点火（復活させる）
+                            </button>
+                            {% else %}
+                            <button type="submit" onclick="return confirm('本当にこの火を消しますか？\n（管理者権限：非表示にします）')"
+                                class="btn-extinguish">
+                                🚫 消火（非表示）
+                            </button>
+                            {% endif %}
+                        </form>
                     </div>
                 </details>
             </div>

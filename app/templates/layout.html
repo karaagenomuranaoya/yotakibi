@@ -27,17 +27,24 @@
     <meta name="twitter:description" content="静かな夜を、ここで。">
 </head>
 
+<!-- 【重要】bodyタグ：管理者の場合、デフォルトでは「hide-admin-ui」クラスをつけておく -->
+
 <body class="{% if session.get('is_admin') %}hide-admin-ui{% endif %}">
 
     {% if session.get('is_admin') %}
-    <!-- 管理者用ステルス機能 -->
+    <!-- ▼▼▼ 管理者用 UIパーツ ▼▼▼ -->
+
+    <!-- 1. 復活させるための隠しボタン（左上） -->
     <div class="admin-ui-toggle-hotspot" onclick="toggleAdminUI()" title="ここを押すと管理画面が復活します"></div>
+
+    <!-- 2. 「火の番」バッジと隠すボタン -->
     <div class="admin-watch-badge">
         <span class="fire-icon">🔥</span> 火の番をしています
         <span class="admin-hide-btn" onclick="toggleAdminUI()" title="撮影モード（管理UIを隠す）">👁️隠す</span>
     </div>
 
     <style>
+        /* 管理者用CSS */
         .admin-watch-badge {
             position: fixed;
             top: 20px;
@@ -115,14 +122,48 @@
         body.hide-admin-ui .admin-time-control,
         body.hide-admin-ui .pin-sidebar,
         body.hide-admin-ui .pin-toggle,
+        body.hide-admin-ui .search-form,
+        body.hide-admin-ui .diary-id,
         body.hide-admin-ui .admin-search-hint {
             display: none !important;
         }
     </style>
-    <script>
-        function toggleAdminUI() { document.body.classList.toggle('hide-admin-ui'); }
-    </script>
     {% endif %}
+
+    <!-- ▼▼▼ 状態記憶とクリーンアップのスクリプト ▼▼▼ -->
+    <script>
+        // Pythonの変数をJSに渡す（管理者がどうか？）
+        const isAdmin = {{ 'true' if session.get('is_admin') else 'false' }};
+
+        if (isAdmin) {
+            // --- A. 管理者の場合：記憶を復元する ---
+
+            // ページ読み込み時：以前「表示する」設定にしていたかチェック
+            if (localStorage.getItem('admin_ui_visible') === 'true') {
+                // 表示設定なら、隠すクラスを即座に削除
+                document.body.classList.remove('hide-admin-ui');
+            }
+
+            // トグル機能（クリック時に発動）
+            window.toggleAdminUI = function () {
+                const body = document.body;
+                // クラスを付け外し
+                body.classList.toggle('hide-admin-ui');
+
+                // 現在の状態（見えているか？）を確認
+                const isVisible = !body.classList.contains('hide-admin-ui');
+
+                // その状態をブラウザに保存
+                localStorage.setItem('admin_ui_visible', isVisible);
+            };
+
+        } else {
+            // --- B. 管理者じゃない場合（guest, ticket含む）：記憶を消去する ---
+            // これにより、役を降りた瞬間に設定がリセットされます
+            localStorage.removeItem('admin_ui_visible');
+        }
+    </script>
+
 
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}

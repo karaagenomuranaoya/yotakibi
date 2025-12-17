@@ -12,7 +12,14 @@ def index():
     page = request.args.get('page', 1, type=int)
     per_page = 10 
     
-    query = Diary.query.filter_by(is_hidden=False)
+    # 【変更前】
+    # query = Diary.query.filter_by(is_hidden=False)
+    
+    # 【変更後】管理者は隠された火（消火済み）も見れるようにする
+    if session.get('is_admin'):
+        query = Diary.query # 全件取得（is_hiddenで絞り込まない）
+    else:
+        query = Diary.query.filter_by(is_hidden=False) # 一般人は隠された火は見えない
     
     pagination = query.order_by(Diary.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False

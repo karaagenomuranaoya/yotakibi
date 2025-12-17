@@ -432,3 +432,15 @@ footer {
     background: #D4AF37;
     color: #2C241B;
 }
+
+/* --- 削除済み（非表示）の種火スタイル --- */
+.diary-card.is-hidden-fire {
+    border: 1px dashed #8b3a3a; /* 赤い点線枠 */
+    background-color: rgba(30, 0, 0, 0.3); /* 少し暗い赤背景 */
+    opacity: 0.7; /* 全体を半透明に */
+}
+
+/* ホバー時は少し見やすく */
+.diary-card.is-hidden-fire:hover {
+    opacity: 1;
+}
