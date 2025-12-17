@@ -30,11 +30,12 @@ def create_app():
         db.create_all()
 
         # ※ ここに後ほど「Blueprints（ルート）」の登録処理が入ります
-        from .routes import system, main, post
+        from .routes import system, main, post,bot
 
         # Blueprintの登録
         app.register_blueprint(system.bp)
         app.register_blueprint(main.bp)
         app.register_blueprint(post.bp)
+        app.register_blueprint(bot.bp) # <--- 追加
 
     return app
