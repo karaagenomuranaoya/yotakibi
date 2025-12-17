@@ -3,6 +3,7 @@ import json
 import google.generativeai as genai
 from flask import Blueprint, request, jsonify, current_app
 from ..models import Diary
+from ..extensions import db, csrf  
 from ..extensions import db
 from ..utils import get_ip_hash
 from ..ng_words import check_text_safety
@@ -31,6 +32,7 @@ SYSTEM_PROMPT = """
 """
 
 @bp.route('/ignite', methods=['POST'])
+@csrf.exempt  # ↓↓↓ 【修正2】 この「免罪符」がないと弾かれます！
 def ignite():
     # 1. セキュリティチェック (外部からの勝手なアクセスを防ぐ)
     # 環境変数 AI_BOT_SECRET と、リクエストヘッダーの X-Bot-Secret が一致するか確認
