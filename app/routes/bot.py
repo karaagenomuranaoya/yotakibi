@@ -3,8 +3,7 @@ import json
 import google.generativeai as genai
 from flask import Blueprint, request, jsonify, current_app
 from ..models import Diary
-from ..extensions import db, csrf  
-from ..extensions import db
+from ..extensions import db, csrf
 from ..utils import get_ip_hash
 from ..ng_words import check_text_safety
 
@@ -32,19 +31,25 @@ SYSTEM_PROMPT = """
 """
 
 @bp.route('/ignite', methods=['POST'])
-@csrf.exempt  # ↓↓↓ 【修正2】 この「免罪符」がないと弾かれます！
+@csrf.exempt
 def ignite():
-    # 1. セキュリティチェック (外部からの勝手なアクセスを防ぐ)
-    # 環境変数 AI_BOT_SECRET と、リクエストヘッダーの X-Bot-Secret が一致するか確認
+    # 1. セキュリティチェック
     env_secret = os.environ.get('AI_BOT_SECRET')
     req_secret = request.headers.get('X-Bot-Secret')
 
-    if not env_secret or req_secret != env_secret:
+    # デバッグ用ログ：認証失敗時用
+    if not env_secret:
+        print("!!! BOT ERROR !!!: Environment variable 'AI_BOT_SECRET' is not set.", flush=True)
+        return jsonify({"error": "Configuration error"}), 500
+
+    if req_secret != env_secret:
+        print(f"!!! BOT ERROR !!!: Authentication failed. Received: {req_secret}", flush=True)
         return jsonify({"error": "Unauthorized"}), 401
 
     # 2. Gemini APIの設定
     api_key = os.environ.get('GEMINI_API_KEY')
     if not api_key:
+        print("!!! BOT ERROR !!!: Environment variable 'GEMINI_API_KEY' is not set.", flush=True)
         return jsonify({"error": "No API Key configured"}), 500
 
     genai.configure(api_key=api_key)
@@ -63,15 +68,15 @@ def ignite():
         aikotoba = data.get('aikotoba')
 
         if not content or not aikotoba:
-            return jsonify({"error": "Generation failed"}), 500
+            raise ValueError("Generated JSON is missing 'content' or 'aikotoba'")
 
-        # 4. 安全性チェック (念のためNGワードを通す)
-        is_safe, _ = check_text_safety(content)
+        # 4. 安全性チェック
+        is_safe, msg = check_text_safety(content)
         if not is_safe:
-            return jsonify({"error": "Unsafe content generated", "content": content}), 400
+            print(f"!!! BOT WARNING !!!: Unsafe content generated -> {content}", flush=True)
+            return jsonify({"error": "Unsafe content generated", "details": msg}), 400
 
         # 5. DBに保存
-        # Bot用の擬似的なIPハッシュを作成
         bot_ip_hash = get_ip_hash("AI_FIRE_KEEPER_BOT")
         
         new_diary = Diary(
@@ -84,6 +89,8 @@ def ignite():
         
         db.session.add(new_diary)
         db.session.commit()
+        
+        print(f"!!! BOT SUCCESS !!!: Ignited fire. ID: {new_diary.id}", flush=True)
 
         return jsonify({
             "message": "Fire ignited successfully.",
@@ -91,4 +98,6 @@ def ignite():
         })
 
     except Exception as e:
+        # ここでRenderのログにエラーの正体を表示する
+        print(f"!!! BOT ERROR !!!: {e}", flush=True)
         return jsonify({"error": str(e)}), 500
