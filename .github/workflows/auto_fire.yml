@@ -2,9 +2,9 @@ name: Auto Fire Keeper (AI Bot)
 
 on:
   schedule:
-    # 毎日 19:00〜25:00 の間、10分おきに実行
-    # (UTC 10:00 - 16:00)
-    - cron: '*/10 10-16 * * *'
+    # 毎日 19:00〜25:00 (JST) の間、ご指定の分に実行
+    # UTC換算: 10:00〜16:00 (15:58までが JST 0:58)
+    - cron: '6,13,22,30,35,43,51,56 10-15 * * *'
   
   workflow_dispatch:
 
@@ -12,27 +12,11 @@ jobs:
   ignite_fire:
     runs-on: ubuntu-latest
     steps:
-      - name: Call AI Bot API with Random Delay
+      - name: Call AI Bot API
         env:
           APP_URL: ${{ secrets.APP_URL }} 
           BOT_SECRET: ${{ secrets.AI_BOT_SECRET }}
         run: |
-          # --- 1. サイコロを振る（確率でスキップ） ---
-          # 0〜2の乱数を生成。 '0' が出たら今回はサボる（約33%の確率でスキップ）
-          # -> スキップすると次の実行まで間隔が20分空くことになる
-          if [ $((RANDOM % 3)) -eq 0 ]; then
-            echo "Skipping this time for randomness."
-            exit 0
-          fi
-
-          # --- 2. 焦らし（ランダム待機） ---
-          # 0 〜 300秒（5分）の間でランダムに待機する
-          # これで「19:10:00」のような機械的な時間を防ぐ
-          DELAY=$((RANDOM % 300))
-          echo "Sleeping for ${DELAY} seconds..."
-          sleep $DELAY
-
-          # --- 3. 実行 ---
           echo "Calling AI Fire Keeper..."
           curl -v -X POST "${APP_URL}/api/bot/ignite" \
                -H "X-Bot-Secret: ${BOT_SECRET}" \

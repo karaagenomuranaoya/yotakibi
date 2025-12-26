@@ -33,7 +33,7 @@ jobs:
             AIKOTOBA="管理人"
           else
             # 手動実行などで時間がずれた場合のデフォルト
-            MESSAGE="（テスト投稿）こんにちは。"
+            MESSAGE="こんにちは。"
             AIKOTOBA="テスト"
           fi
 
