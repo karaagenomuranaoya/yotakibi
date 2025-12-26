@@ -274,7 +274,7 @@
     {% if pagination and pagination.pages > 1 %}
     <div class="pagination">
         {% if pagination.has_prev %}
-        <a href="{{ url_for('main.index', page=pagination.prev_num) }}" class="page-link">&laquo; 前の夜</a>
+        <a href="{{ url_for('main.index', page=pagination.prev_num) }}" class="page-link">&laquo; 次の夜</a>
         {% else %}
         <span class="page-link disabled">&laquo; 前の夜</span>
         {% endif %}
