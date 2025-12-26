@@ -1,46 +1,46 @@
-name: Daily Greetings (Fixed Message)
+# name: Daily Greetings (Fixed Message)
 
-on:
-  schedule:
-    # 開店挨拶: 日本時間 19:00 (UTC 10:00)
-    - cron: '0 10 * * *'
-    # 閉店挨拶: 日本時間 24:55 (UTC 15:55)
-    - cron: '55 15 * * *'
+# on:
+#   schedule:
+#     # 開店挨拶: 日本時間 19:00 (UTC 10:00)
+#     - cron: '0 10 * * *'
+#     # 閉店挨拶: 日本時間 24:55 (UTC 15:55)
+#     - cron: '55 15 * * *'
 
-  # テスト用に手動ボタンもつけておく
-  workflow_dispatch:
+#   # テスト用に手動ボタンもつけておく
+#   workflow_dispatch:
 
-jobs:
-  post_greeting:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Greeting
-        env:
-          APP_URL: ${{ secrets.APP_URL }}
-          BOT_SECRET: ${{ secrets.AI_BOT_SECRET }}
-        run: |
-          # 現在時刻（UTCの時）を取得
-          CURRENT_HOUR=$(date -u +%H)
+# jobs:
+#   post_greeting:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Send Greeting
+#         env:
+#           APP_URL: ${{ secrets.APP_URL }}
+#           BOT_SECRET: ${{ secrets.AI_BOT_SECRET }}
+#         run: |
+#           # 現在時刻（UTCの時）を取得
+#           CURRENT_HOUR=$(date -u +%H)
           
-          # 時間によってメッセージを切り替えるロジック
-          if [ "$CURRENT_HOUR" -eq 10 ]; then
-            # 19:00 (UTC 10:00) の場合
-            MESSAGE="こんばんは。夜焚き火にようこそ。"
-            AIKOTOBA="管理人"
-          elif [ "$CURRENT_HOUR" -eq 15 ]; then
-            # 24:55 (UTC 15:55) の場合
-            MESSAGE="また明日お会いしましょう。おやすみなさい。"
-            AIKOTOBA="管理人"
-          else
-            # 手動実行などで時間がずれた場合のデフォルト
-            MESSAGE="こんにちは。"
-            AIKOTOBA="テスト"
-          fi
+#           # 時間によってメッセージを切り替えるロジック
+#           if [ "$CURRENT_HOUR" -eq 10 ]; then
+#             # 19:00 (UTC 10:00) の場合
+#             MESSAGE="こんばんは。夜焚き火にようこそ。"
+#             AIKOTOBA="管理人"
+#           elif [ "$CURRENT_HOUR" -eq 15 ]; then
+#             # 24:55 (UTC 15:55) の場合
+#             MESSAGE="また明日お会いしましょう。おやすみなさい。"
+#             AIKOTOBA="管理人"
+#           else
+#             # 手動実行などで時間がずれた場合のデフォルト
+#             MESSAGE="こんにちは。"
+#             AIKOTOBA="テスト"
+#           fi
 
-          echo "Posting message: $MESSAGE"
+#           echo "Posting message: $MESSAGE"
 
-          # 新しく作った /api/bot/say に送信
-          curl -v -X POST "${APP_URL}/api/bot/say" \
-               -H "X-Bot-Secret: ${BOT_SECRET}" \
-               -H "Content-Type: application/json" \
-               -d "{\"content\": \"$MESSAGE\", \"aikotoba\": \"$AIKOTOBA\"}"
+#           # 新しく作った /api/bot/say に送信
+#           curl -v -X POST "${APP_URL}/api/bot/say" \
+#                -H "X-Bot-Secret: ${BOT_SECRET}" \
+#                -H "Content-Type: application/json" \
+#                -d "{\"content\": \"$MESSAGE\", \"aikotoba\": \"$AIKOTOBA\"}"

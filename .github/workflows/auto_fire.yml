@@ -1,23 +1,23 @@
-name: Auto Fire Keeper (AI Bot)
+# name: Auto Fire Keeper (AI Bot)
 
-on:
-  schedule:
-    # 毎日 19:00〜25:00 (JST) の間、ご指定の分に実行
-    # UTC換算: 10:00〜16:00 (15:58までが JST 0:58)
-    - cron: '6,13,22,30,35,43,51,56 10-15 * * *'
+# on:
+#   schedule:
+#     # 毎日 19:00〜25:00 (JST) の間、ご指定の分に実行
+#     # UTC換算: 10:00〜16:00 (15:58までが JST 0:58)
+#     - cron: '6,13,22,30,35,43,51,56 10-15 * * *'
   
-  workflow_dispatch:
+#   workflow_dispatch:
 
-jobs:
-  ignite_fire:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Call AI Bot API
-        env:
-          APP_URL: ${{ secrets.APP_URL }} 
-          BOT_SECRET: ${{ secrets.AI_BOT_SECRET }}
-        run: |
-          echo "Calling AI Fire Keeper..."
-          curl -v -X POST "${APP_URL}/api/bot/ignite" \
-               -H "X-Bot-Secret: ${BOT_SECRET}" \
-               -H "Content-Type: application/json"
+# jobs:
+#   ignite_fire:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Call AI Bot API
+#         env:
+#           APP_URL: ${{ secrets.APP_URL }} 
+#           BOT_SECRET: ${{ secrets.AI_BOT_SECRET }}
+#         run: |
+#           echo "Calling AI Fire Keeper..."
+#           curl -v -X POST "${APP_URL}/api/bot/ignite" \
+#                -H "X-Bot-Secret: ${BOT_SECRET}" \
+#                -H "Content-Type: application/json"

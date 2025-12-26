@@ -36,6 +36,6 @@ def create_app():
         app.register_blueprint(system.bp)
         app.register_blueprint(main.bp)
         app.register_blueprint(post.bp)
-        app.register_blueprint(bot.bp) # <--- 追加
+        # app.register_blueprint(bot.bp) # <--- 追加
 
     return app
